@@ -28,7 +28,7 @@ namespace SpaceScribble
 
         private LevelStates levelState;
 
-        private int currentLevel;
+        private static int currentLevel;
         private int lastLevel;
 
         private bool hasChanged = false;
@@ -128,8 +128,8 @@ namespace SpaceScribble
 
         private void SetLevelAll(int lvl)
         {
-            this.lastLevel = this.currentLevel;
-            this.currentLevel = lvl;
+            this.lastLevel = currentLevel;
+            currentLevel = lvl;
 
             foreach (var comp in components)
             {
@@ -147,7 +147,7 @@ namespace SpaceScribble
 
             levelTimer = TimeForLevel;
 
-            this.currentLevel = 1;
+            currentLevel = 1;
             this.lastLevel = 1;
 
             SetLevelAll(LevelManager.StartLevel);
@@ -162,7 +162,7 @@ namespace SpaceScribble
         public void Activated(StreamReader reader)
         {
             this.levelTimer = Single.Parse(reader.ReadLine());
-            this.currentLevel = Int32.Parse(reader.ReadLine());
+            currentLevel = Int32.Parse(reader.ReadLine());
             this.lastLevel = Int32.Parse(reader.ReadLine());
             this.hasChanged = Boolean.Parse(reader.ReadLine());
             this.levelState = (LevelStates)Enum.Parse(levelState.GetType(), reader.ReadLine(), false); 
@@ -185,7 +185,19 @@ namespace SpaceScribble
         {
             get
             {
-                return this.currentLevel;
+                return currentLevel;
+            }
+        }
+
+        /// <summary>
+        /// Implemented to let the powerup-manager have easy access to the current level.
+        /// Very ugly code! Shame on you...
+        /// </summary>
+        public static int CurrentLevelStatic
+        {
+            get
+            {
+                return currentLevel;
             }
         }
 

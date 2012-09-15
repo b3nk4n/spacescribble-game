@@ -151,10 +151,10 @@ namespace SpaceScribble
 #if DEBUG
             AdGameComponent.Initialize(this, "test_client");
 #else
-            AdGameComponent.Initialize(this, "f66ba9f1-58eb-4408-9b1c-ee7fa54d5128");
+            AdGameComponent.Initialize(this, "72421ce8-68e9-46a0-aea9-27c2bf5f6c76");
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("en-US");
-#endif       
+#endif
 
             adGameComponent = AdGameComponent.Current;
 
@@ -207,8 +207,8 @@ namespace SpaceScribble
 #if DEBUG
             bannerAd = adGameComponent.CreateAd("Image480_80", new Rectangle(0, 0, 480, 80));
 #else
-            bannerAd = adGameComponent.CreateAd("90169", new Rectangle(0, 0, 480, 80));
-#endif       
+            bannerAd = adGameComponent.CreateAd("92279", new Rectangle(0, 0, 480, 80));
+#endif
             bannerAd.BorderEnabled = false;
             bannerAd.AdRefreshed += new EventHandler(bannerAd_AdRefreshed);
             bannerAd.ErrorOccurred += new EventHandler<Microsoft.Advertising.AdErrorEventArgs>(bannerAd_ErrorOccurred);
@@ -495,6 +495,9 @@ namespace SpaceScribble
                 gameState == GameStates.Submittion || gameState == GameStates.SelectShip)
             {
                 gameState = GameStates.TitleScreen;
+
+                // Reset hands:
+                handManager.Reset();
             }
         }
 
@@ -1575,14 +1578,15 @@ namespace SpaceScribble
 
                 highscoreManager.SaveHighScore(name,
                                                playerManager.PlayerScore,
-                                               levelManager.CurrentLevel,
-                                               playerManager.Credits);
+                                               levelManager.CurrentLevel);
             }
             else
             {
                 gameState = GameStates.MainMenu;
             }
-            
+
+            highscoreManager.IncreaseTotalCredits(playerManager.Credits);
+
             highscoreMessageShown = false;
         }
 
@@ -1613,25 +1617,25 @@ namespace SpaceScribble
             if (playerManager.PlayerScore > 10000)
                 title = KeyboardTitleTextVeryLow;
 
-            if (playerManager.PlayerScore > 25000)
+            if (playerManager.PlayerScore > 50000)
                 title = KeyboardTitleTextLow;
 
-            if (playerManager.PlayerScore > 50000)
+            if (playerManager.PlayerScore > 100000)
                 title = KeyboardTitleTextMed;
 
-            if (playerManager.PlayerScore > 100000)
+            if (playerManager.PlayerScore > 250000)
                 title = KeyboardTitleTextHigh;
 
-            if (playerManager.PlayerScore > 250000)
+            if (playerManager.PlayerScore > 500000)
                 title = KeyboardTitleTextVeryHigh;
 
-            if (playerManager.PlayerScore > 500000)
+            if (playerManager.PlayerScore > 1000000)
                 title = KeyboardTitleTextUltra;
 
-            if (playerManager.PlayerScore > 1000000)
+            if (playerManager.PlayerScore > 2500000)
                 title = KeyboardTitleTextUltraPlus;
 
-            if (playerManager.PlayerScore > 2500000)
+            if (playerManager.PlayerScore > 10000000)
                 title = KeyboardTitleTextGodlike;
 
             string text;

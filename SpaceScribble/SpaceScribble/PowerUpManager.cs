@@ -13,8 +13,12 @@ namespace SpaceScribble
         private List<PowerUp> powerUps = new List<PowerUp>(16);
         private Texture2D texture;
 
-        private const int SPAWN_CHANCE = 15; // 15%
-        private const int HIGH_SPAWN_CHANCE = 75; // 75%
+        private const int SPAWN_CHANCE = 15;
+        private const int SPAWN_CHANCE10 = 14;
+        private const int SPAWN_CHANCE20 = 12;
+        private const int SPAWN_CHANCE30 = 10;
+        private const int SPAWN_CHANCE40 = 8;
+        private const int HIGH_SPAWN_CHANCE = 66; // v1.0: 75%
 
         private Random rand = new Random();
 
@@ -34,8 +38,21 @@ namespace SpaceScribble
         public void ProbablySpawnPowerUp(Vector2 location)
         {
             int spawnChance = rand.Next(100);
-            
-            if (spawnChance >= SPAWN_CHANCE)
+
+            int spawnChanceLimit;
+
+            if (LevelManager.CurrentLevelStatic > 40)
+                spawnChanceLimit = SPAWN_CHANCE40;
+            else if (LevelManager.CurrentLevelStatic > 30)
+                spawnChanceLimit = SPAWN_CHANCE30;
+            else if (LevelManager.CurrentLevelStatic > 20)
+                spawnChanceLimit = SPAWN_CHANCE20;
+            else if (LevelManager.CurrentLevelStatic > 10)
+                spawnChanceLimit = SPAWN_CHANCE10;
+            else
+                spawnChanceLimit = SPAWN_CHANCE;
+
+            if (spawnChance >= spawnChanceLimit)
                 return;
 
             int rnd = rand.Next(11);

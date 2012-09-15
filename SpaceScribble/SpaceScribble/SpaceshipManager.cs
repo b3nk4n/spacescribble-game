@@ -50,19 +50,19 @@ namespace SpaceScribble
         private readonly Rectangle LockDestination = new Rectangle(215, 310,
                                                                    50, 50);
 
-        public const long CREDITS_TO_UNLOCK_GREENHORNET = 750000;
+        public const long CREDITS_TO_UNLOCK_GREENHORNET = 1000000;
         public const long CREDITS_TO_UNLOCK_MEDIUM = 150000;
-        public const long CREDITS_TO_UNLOCK_SPEEDER = 250000;
-        public const long CREDITS_TO_UNLOCK_HARD = 400000;
-        public const long CREDITS_TO_UNLOCK_TANK = 500000;
+        public const long CREDITS_TO_UNLOCK_SPEEDER = 300000;
+        public const long CREDITS_TO_UNLOCK_HARD = 500000;
+        public const long CREDITS_TO_UNLOCK_TANK = 750000;
 
         private const int PriceTextPositionY = 450;
         public const string PRICE_TITLE_TEXT = "Price:";
-        public const string CREDITS_TO_UNLOCK_GREENHORNET_TEXT = "750000 $";
+        public const string CREDITS_TO_UNLOCK_GREENHORNET_TEXT = "1000000 $";
         public const string CREDITS_TO_UNLOCK_MEDIUM_TEXT = "150000 $";
-        public const string CREDITS_TO_UNLOCK_SPEEDER_TEXT = "250000 $";
-        public const string CREDITS_TO_UNLOCK_HARD_TEXT = "400000 $";
-        public const string CREDITS_TO_UNLOCK_TANK_TEXT = "500000 $";
+        public const string CREDITS_TO_UNLOCK_SPEEDER_TEXT = "300000 $";
+        public const string CREDITS_TO_UNLOCK_HARD_TEXT = "500000 $";
+        public const string CREDITS_TO_UNLOCK_TANK_TEXT = "750000 $";
 
         private readonly Rectangle ArrowRightSource = new Rectangle(340, 400,
                                                                   100, 100);

@@ -55,6 +55,12 @@ namespace SpaceScribble
 
         #region Methods
 
+        public void Reset()
+        {
+            leftHandPosition = leftHandFrom;
+            rightHandPosition = rightHandFrom;
+        }
+
         public void ShowHands()
         {
             handShown = true;

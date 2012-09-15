@@ -63,17 +63,17 @@ namespace SpaceScribble
         private const float Upgrade6Limit = 48.0f;
         private const float Upgrade7Limit = 50.0f;
         private const float Upgrade8Limit = 52.0f;
-        private const float Upgrade9Limit = 56.0f;
-        private const float Upgrade10Limit = 58.0f;
-        private const float UpgradeKeyLimit = 61.0f;
-        private const float HitPointsLimit = 64.0f;
-        private const float ShieldLimit = 67.0f;
-        private const float ReloadLimit = 70.0f;
-        private const float BewareAsteroidsLimit = 73.0f;
-        private const float KillEnemiesLimit = 76.0f;
-        private const float CreditsLimit = 79.0f;
-        private const float KillBossLimit = 82.0f;
-        private const float BossBonusLimit = 85.0f;
+        private const float Upgrade9Limit = 54.0f;
+        private const float Upgrade10Limit = 56.0f;
+        private const float UpgradeKeyLimit = 59.0f;
+        private const float HitPointsLimit = 62.0f;
+        private const float ShieldLimit = 65.0f;
+        private const float ReloadLimit = 68.0f;
+        private const float BewareAsteroidsLimit = 71.0f;
+        private const float KillEnemiesLimit = 74.0f;
+        private const float CreditsLimit = 77.0f;
+        private const float KillBossLimit = 80.0f;
+        private const float BossBonusLimit = 83.0f;
 
         private SpriteFont font;
 
@@ -119,7 +119,8 @@ namespace SpaceScribble
         private readonly string UpgradeCollectText = "Collect upgrade items!";
         private readonly string[] UpgradeActivateText = {"DOUBLE TAP here", 
                                                          "to activate your desired upgrade",
-                                                         "or TAP the highlighted upgrade below!"};
+                                                         "or",
+                                                         "TAP the highlighted upgrade below!"};
         private readonly string UpgradeSortimentText = "There a several power ups...";
         private readonly string Upgrade1Text = "Agility";
         private readonly string Upgrade2Text = "Laser accuracy";

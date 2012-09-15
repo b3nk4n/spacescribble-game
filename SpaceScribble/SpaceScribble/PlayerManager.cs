@@ -1105,9 +1105,11 @@ namespace SpaceScribble
 
         private void handleUpgradeTouched()
         {
-            for (int i = 0; i < ActionUpgradeTouch.Length; ++i)
+            int index = upgrades - 1;
+
+            if (index >= 0 && index < ActionUpgradeTouch.Length)
             {
-                if (gameInput.IsPressed(ActionUpgradeTouch[i]))
+                if (gameInput.IsPressed(ActionUpgradeTouch[index]))
                 {
                     upgradePlayer();
                 }
@@ -1205,21 +1207,25 @@ namespace SpaceScribble
             if (location.X < playerAreaLimit.X)
             {
                 location.X = playerAreaLimit.X;
+                playerSprite.Velocity = Vector2.Zero;
             }
 
             if (location.X > (playerAreaLimit.Right - playerSprite.Source.Width))
             {
                 location.X = (playerAreaLimit.Right - playerSprite.Source.Width);
+                playerSprite.Velocity = Vector2.Zero;
             }
 
             if (location.Y < playerAreaLimit.Y)
             {
                 location.Y = playerAreaLimit.Y;
+                playerSprite.Velocity = Vector2.Zero;
             }
 
             if (location.Y > (playerAreaLimit.Bottom - playerSprite.Source.Height - PADDING_BOTTOM))
             {
                 location.Y = (playerAreaLimit.Bottom - playerSprite.Source.Height - PADDING_BOTTOM);
+                playerSprite.Velocity = Vector2.Zero;
             }
 
             playerSprite.Location = location;

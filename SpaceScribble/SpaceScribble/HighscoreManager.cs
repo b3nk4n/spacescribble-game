@@ -30,7 +30,7 @@ namespace SpaceScribble
 
         private readonly Rectangle browserSource = new Rectangle(340, 500,
                                                                  100, 100);
-        private readonly Rectangle browserDestination = new Rectangle(0, 700,
+        private readonly Rectangle browserDestination = new Rectangle(15, 700,
                                                                       100, 100);
 
         private readonly Rectangle refreshSource = new Rectangle(240, 600,
@@ -99,7 +99,7 @@ namespace SpaceScribble
 
         private const int RankPositionX = 30;
         private const int NamePositionX = 70;
-        private const int ScorePositionX = 400;
+        private const int ScorePositionX = 395;
         private const int LevelPositionX = 450;
 
         private long totalCredits = 0;
@@ -772,11 +772,9 @@ namespace SpaceScribble
         /// <summary>
         /// Saves the current highscore to a text file.
         /// </summary>
-        public void SaveHighScore(string name, long score, int level, long credits)
+        public void SaveHighScore(string name, long score, int level)
         {
             this.lastName = name;
-
-            increaseTotalCredits(credits);
 
             if(this.IsInScoreboard(score))
             {
@@ -983,7 +981,7 @@ namespace SpaceScribble
             }
         }
 
-        private void increaseTotalCredits(long value)
+        public void IncreaseTotalCredits(long value)
         {
             this.totalCredits += value;
         }

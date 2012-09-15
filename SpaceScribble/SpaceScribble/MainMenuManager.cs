@@ -45,7 +45,7 @@ namespace SpaceScribble
 
         private Rectangle moreGamesSource = new Rectangle(240, 500,
                                                        100, 100);
-        private Rectangle moreGamesDestination = new Rectangle(10, 690,
+        private Rectangle moreGamesDestination = new Rectangle(15, 690,
                                                             100, 100);
 
         private Rectangle helpSource = new Rectangle(240, 400,
