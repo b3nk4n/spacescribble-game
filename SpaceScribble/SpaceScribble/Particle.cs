@@ -11,18 +11,19 @@ namespace SpaceScribble
 
         private Vector2 acceleration;
         private float maxSpeed;
-        private int initialDuration;
-        private int remainingDuration;
+        private float initialDuration;
+        private float remainingDuration;
         private Color initialColor;
         private Color finalColor;
-        
+        private float rotationSpeed;
+
         #endregion
 
         #region Constructors
 
         public Particle(Vector2 location, Texture2D texture, Rectangle initialFrame,
                         Vector2 velocity, Vector2 acceleration, float maxSpeed,
-                        int duration, Color initialColor, Color finalColor)
+                        float duration, Color initialColor, Color finalColor, float rotationSpeed)
             : base(location, texture, initialFrame, velocity)
         {
             this.acceleration = acceleration;
@@ -31,6 +32,7 @@ namespace SpaceScribble
             this.remainingDuration = duration;
             this.initialColor = initialColor;
             this.finalColor = finalColor;
+            this.rotationSpeed = rotationSpeed;
         }
 
         #endregion
@@ -39,7 +41,7 @@ namespace SpaceScribble
 
         public void Reinitialize(Vector2 location, Texture2D texture,
                                  Vector2 velocity, Vector2 acceleration, float maxSpeed,
-                                 int duration, Color initialColor, Color finalColor)
+                                 float duration, Color initialColor, Color finalColor, float rotationSpeed)
         {
             this.Location = location;
             this.Velocity = velocity;
@@ -51,10 +53,14 @@ namespace SpaceScribble
             this.remainingDuration = duration;
             this.initialColor = initialColor;
             this.finalColor = finalColor;
+
+            this.rotationSpeed = rotationSpeed;
         }
 
         public override void Update(GameTime gameTime)
         {
+            float elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             if (IsActive)
             {
                 velocity += acceleration;
@@ -65,10 +71,21 @@ namespace SpaceScribble
                     velocity *= maxSpeed;
                 }
 
-                TintColor = Color.Lerp(initialColor,
-                                       finalColor,
-                                       this.DurationProgress);
-                remainingDuration--;
+                if (remainingDuration > 0.25f)
+                {
+                    TintColor = Color.Lerp(initialColor,
+                                           finalColor,
+                                           this.DurationProgress);
+                }
+                else
+                {
+                    TintColor = Color.Lerp(initialColor,
+                                           finalColor,
+                                           this.DurationProgress) * (remainingDuration / 0.25f);
+                }
+                remainingDuration -= elapsed;
+
+                base.Rotation += rotationSpeed;
 
                 base.Update(gameTime);
             }
@@ -80,7 +97,7 @@ namespace SpaceScribble
             {
                 base.Draw(spriteBatch);
             }
-            
+
         }
 
         #endregion
@@ -97,8 +114,8 @@ namespace SpaceScribble
 
             this.maxSpeed = Single.Parse(reader.ReadLine());
 
-            this.initialDuration = Int32.Parse(reader.ReadLine());
-            this.remainingDuration = Int32.Parse(reader.ReadLine());
+            this.initialDuration = Single.Parse(reader.ReadLine());
+            this.remainingDuration = Single.Parse(reader.ReadLine());
 
             this.initialColor = new Color(Int32.Parse(reader.ReadLine()),
                                           Int32.Parse(reader.ReadLine()),
@@ -109,6 +126,8 @@ namespace SpaceScribble
                                         Int32.Parse(reader.ReadLine()),
                                         Int32.Parse(reader.ReadLine()),
                                         Int32.Parse(reader.ReadLine()));
+
+            this.rotationSpeed = Single.Parse(reader.ReadLine());
         }
 
         public new void Deactivated(StreamWriter writer)
@@ -133,13 +152,15 @@ namespace SpaceScribble
             writer.WriteLine((int)finalColor.G);
             writer.WriteLine((int)finalColor.B);
             writer.WriteLine((int)finalColor.A);
+
+            writer.WriteLine(rotationSpeed);
         }
 
         #endregion
 
         #region Properties
 
-        public int ElapsedDuration
+        public float ElapsedDuration
         {
             get
             {

@@ -35,8 +35,6 @@ namespace SpaceScribble
         private static SoundEffect bossSpeederSound;
         private static SoundEffect bossTankSound;
 
-        private static SoundEffect startGameSound;
-
         private static List<SoundEffect> hitSounds = new List<SoundEffect>();
         private static int hitSoundsCount = 6;
 
@@ -49,9 +47,11 @@ namespace SpaceScribble
         private static Random rand = new Random();
 
         private static Song backgroundSound;
-        //private static SoundEffectInstance backgroundSound;
 
-        private static SoundEffect selectSound;
+        private static List<SoundEffect> paperSounds = new List<SoundEffect>();
+        private static int papersCount = 3;
+
+        private static SoundEffect writingSound;
 
         // performance improvements
         public const float MinTimeBetweenHitSound = 0.2f;
@@ -92,8 +92,6 @@ namespace SpaceScribble
                 bossSpeederSound = content.Load<SoundEffect>(@"Sounds\boss_speeder");
                 bossTankSound = content.Load<SoundEffect>(@"Sounds\boss_tank");
 
-                startGameSound = content.Load<SoundEffect>(@"Sounds\StartGame");
-
                 for (int x = 1; x <= explosionsCount; x++)
                 {
                     explosions.Add(content.Load<SoundEffect>(@"Sounds\Explosion"
@@ -120,7 +118,13 @@ namespace SpaceScribble
 
                 backgroundSound = content.Load<Song>(@"Sounds\GameSound");
 
-                selectSound = content.Load<SoundEffect>(@"Sounds\Select");
+                for (int x = 1; x <= papersCount; x++)
+                {
+                    paperSounds.Add(content.Load<SoundEffect>(@"Sounds\Paper"
+                                                             + x.ToString()));
+                }
+
+                writingSound = content.Load<SoundEffect>(@"Sounds\Writing");
             }
             catch
             {
@@ -427,12 +431,12 @@ namespace SpaceScribble
             }
         }
 
-        public static void PlaySelectSound()
+        public static void PlayPaperSound()
         {
             try
             {
-                SoundEffectInstance s = selectSound.CreateInstance();
-                s.Volume = settings.GetSfxValue() * 0.4f;
+                SoundEffectInstance s = paperSounds[rand.Next(0, papersCount)].CreateInstance();
+                s.Volume = settings.GetSfxValue() * 0.5f;
                 s.Play();
             }
             catch
@@ -441,17 +445,17 @@ namespace SpaceScribble
             }
         }
 
-        public static void PlayStartGameSound()
+        public static void PlayWritingSound()
         {
             try
             {
-                SoundEffectInstance s = startGameSound.CreateInstance();
-                s.Volume = settings.GetSfxValue() * 0.8f;
+                SoundEffectInstance s = writingSound.CreateInstance();
+                s.Volume = settings.GetSfxValue();
                 s.Play();
             }
             catch
             {
-                Debug.WriteLine("SoundManager: Play select sound failed.");
+                Debug.WriteLine("SoundManager: Play writing sound failed.");
             }
         }
 

@@ -12,6 +12,9 @@ namespace SpaceScribble
     {
         #region Members
 
+        private const string OLD_SETTINGS_FILE = "settings.txt";
+        private const string SETTINGS_FILE = "settings2.txt";
+
         private static SettingsManager settingsManager;
 
         private static Texture2D texture;
@@ -22,43 +25,39 @@ namespace SpaceScribble
 
         public enum SoundValues {Off, VeryLow, Low, Med, High, VeryHigh};
         public enum ToggleValues { On, Off };
-        public enum NeutralPositionValues { Angle0, Angle10, Angle20, Angle30, Angle40 };
+        public enum NeutralPositionValues { Angle0, Angle10, Angle20, Angle30, Angle40, Angle50, Angle60, Unsupported };
         public enum ControlPositionValues { Left, Right };
 
         private const string MUSIC_TITLE = "Music: ";
         private SoundValues musicValue = SoundValues.Med;
-        private readonly int musicPositionY = 260;
-        private readonly Rectangle musicDestination = new Rectangle(90, 245,
+        private readonly int musicPositionY = 280;
+        private readonly Rectangle musicDestination = new Rectangle(90, 265,
                                                                     300, 50);
 
         private const string SFX_TITLE = "SFX: ";
-        private SoundValues sfxValue = SoundValues.Med;
-        private readonly int sfxPositionY = 330;
-        private readonly Rectangle sfxDestination = new Rectangle(90, 325,
+        private SoundValues sfxValue = SoundValues.High;
+        private readonly int sfxPositionY = 360;
+        private readonly Rectangle sfxDestination = new Rectangle(90, 345,
                                                                   300, 50);
 
         private const string VIBRATION_TITLE = "Vibration: ";
         private ToggleValues vibrationValue = ToggleValues.On;
-        private readonly int vibrationPositionY = 420;
-        private readonly Rectangle vibrationDestination = new Rectangle(90, 405,
+        private readonly int vibrationPositionY = 440;
+        private readonly Rectangle vibrationDestination = new Rectangle(90, 425,
                                                                         300, 50);
 
-        private const string NEUTRAL_POSITION_TITLE = "Neutral Position: ";
-        private NeutralPositionValues neutralPositionValue = NeutralPositionValues.Angle30;
-        private readonly int neutralPositionY = 500;
-        private readonly Rectangle neutralPositionDestination = new Rectangle(90, 485,
-                                                                              300, 50);
+        private NeutralPositionValues neutralPositionValue = NeutralPositionValues.Angle20;
 
         private const string AUTOFIRE_TITLE = "Autofire: ";
         private ToggleValues autofireValue = ToggleValues.On;
-        private readonly int autoforePositionY = 580;
-        private readonly Rectangle autofireDestination = new Rectangle(90, 565,
+        private readonly int autoforePositionY = 520;
+        private readonly Rectangle autofireDestination = new Rectangle(90, 505,
                                                                        300, 50);
 
         private const string CONTROL_POSITION_TITLE = "Control Position: ";
         private ControlPositionValues controlPositionValue = ControlPositionValues.Right;
-        private readonly int controlPositionY = 660;
-        private readonly Rectangle controlPositionDestination = new Rectangle(90, 645,
+        private readonly int controlPositionY = 600;
+        private readonly Rectangle controlPositionDestination = new Rectangle(90, 585,
                                                                               300, 50);
 
         private static Rectangle screenBounds;
@@ -88,14 +87,10 @@ namespace SpaceScribble
         private const string LEFT = "LEFT";
         private const string RIGHT = "RIGHT";
 
-        private const string ANGLE0 = "0   ";
-        private const string ANGLE10 = "10   ";
-        private const string ANGLE20 = "20   ";
-        private const string ANGLE30 = "30   ";
-        private const string ANGLE40 = "40   ";
-
         private const int TextPositonX = 80;
         private const int ValuePositionX = 400;
+
+        private bool isInvalidated = false;
 
         #endregion
 
@@ -121,9 +116,6 @@ namespace SpaceScribble
             GameInput.AddTouchGestureInput(VibrationAction,
                                            GestureType.Tap,
                                            vibrationDestination);
-            GameInput.AddTouchGestureInput(NeutralPositionAction,
-                                           GestureType.Tap,
-                                           neutralPositionDestination);
             GameInput.AddTouchGestureInput(ControlPositionAction,
                                            GestureType.Tap,
                                            controlPositionDestination);
@@ -170,48 +162,41 @@ namespace SpaceScribble
             drawMusic(spriteBatch);
             drawSfx(spriteBatch);
             drawVibration(spriteBatch);
-            drawNeutralPosition(spriteBatch);
             drawControlPosition(spriteBatch);
             drawAutofire(spriteBatch);
         }
 
         private void handleTouchInputs()
         {
-            // Music
-            if (GameInput.IsPressed(MusicAction))
-            {
-                toggleMusic();
-                SoundManager.PlaySelectSound();
-            }
-            // Sfx
-            if (GameInput.IsPressed(SfxAction))
-            {
-                toggleSfx();
-                SoundManager.PlaySelectSound();
-            }
             // Vibration
             if (GameInput.IsPressed(VibrationAction))
             {
                 toggleVibration();
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
-            // NeutralPosition
-            if (GameInput.IsPressed(NeutralPositionAction))
+            // Music
+            else if (GameInput.IsPressed(MusicAction))
             {
-                toggleNeutralPosition();
-                SoundManager.PlaySelectSound();
+                toggleMusic();
+                SoundManager.PlayPaperSound();
+            }
+            // Sfx
+            else if (GameInput.IsPressed(SfxAction))
+            {
+                toggleSfx();
+                SoundManager.PlayPaperSound();
             }
             // ControlPosition
-            if (GameInput.IsPressed(ControlPositionAction))
+            else if (GameInput.IsPressed(ControlPositionAction))
             {
                 toggleControlPosition();
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Autofire
-            if (GameInput.IsPressed(AutofireAction))
+            else if (GameInput.IsPressed(AutofireAction))
             {
                 toggleAutofire();
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
         }
 
@@ -238,7 +223,7 @@ namespace SpaceScribble
                     musicValue = SoundValues.Off;
                     break;
             }
-
+            isInvalidated = true;
             SoundManager.RefreshMusicVolume();
         }
 
@@ -265,7 +250,7 @@ namespace SpaceScribble
                     sfxValue = SoundValues.Off;
                     break;
             }
-
+            isInvalidated = true;
             if (sfxValue != SoundValues.Off)
                 SoundManager.PlayPlayerShot();
         }
@@ -281,33 +266,14 @@ namespace SpaceScribble
                     vibrationValue = ToggleValues.Off;
                     break;
             }
-
+            isInvalidated = true;
             if (vibrationValue == ToggleValues.On)
                 VibrationManager.Vibrate(0.2f);
         }
 
-        private void toggleNeutralPosition()
+        public void SetNeutralPosition(NeutralPositionValues value)
         {
-            switch (neutralPositionValue)
-            {
-                case NeutralPositionValues.Angle0:
-                    neutralPositionValue = NeutralPositionValues.Angle10;
-                    break;
-                case NeutralPositionValues.Angle10:
-                    neutralPositionValue = NeutralPositionValues.Angle20;
-                    break;
-                case NeutralPositionValues.Angle20:
-                    neutralPositionValue = NeutralPositionValues.Angle30;
-                    break;
-                case NeutralPositionValues.Angle30:
-                    neutralPositionValue = NeutralPositionValues.Angle40;
-                    break;
-                case NeutralPositionValues.Angle40:
-                    neutralPositionValue = NeutralPositionValues.Angle0;
-                    break;
-                default:
-                    break;
-            }
+            this.neutralPositionValue = value;
         }
 
         private void toggleControlPosition()
@@ -323,6 +289,7 @@ namespace SpaceScribble
                 default:
                     break;
             }
+            isInvalidated = true;
         }
 
         private void toggleAutofire()
@@ -336,6 +303,7 @@ namespace SpaceScribble
                     autofireValue = ToggleValues.Off;
                     break;
             }
+            isInvalidated = true;
         }
 
         private void drawMusic(SpriteBatch spriteBatch)
@@ -443,47 +411,6 @@ namespace SpaceScribble
                                    Color.Black * opacity);
         }
 
-        private void drawNeutralPosition(SpriteBatch spriteBatch)
-        {
-            string text;
-
-            switch (neutralPositionValue)
-            {
-                case NeutralPositionValues.Angle0:
-                    text = ANGLE0;
-                    break;
-                case NeutralPositionValues.Angle10:
-                    text = ANGLE10;
-                    break;
-                case NeutralPositionValues.Angle20:
-                    text = ANGLE20;
-                    break;
-                case NeutralPositionValues.Angle30:
-                    text = ANGLE30;
-                    break;
-                default:
-                    text = ANGLE40;
-                    break;
-            }
-
-            spriteBatch.DrawString(font,
-                                   NEUTRAL_POSITION_TITLE,
-                                   new Vector2(TextPositonX,
-                                               neutralPositionY),
-                                   Color.Black * opacity);
-
-            spriteBatch.DrawString(font,
-                                   text,
-                                   new Vector2((ValuePositionX - font.MeasureString(text).X),
-                                               neutralPositionY),
-                                   Color.Black * opacity);
-            spriteBatch.DrawString(font,
-                                   "o",
-                                   new Vector2((ValuePositionX - font.MeasureString("o").X),
-                                               neutralPositionY - 10),
-                                   Color.Black * opacity);
-        }
-
         private void drawControlPosition(SpriteBatch spriteBatch)
         {
             string text;
@@ -551,9 +478,12 @@ namespace SpaceScribble
 
         public void Save()
         {
+            if (!isInvalidated)
+                return;
+
             using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication())
             {
-                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream("settings.txt", FileMode.Create, isf))
+                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(SETTINGS_FILE, FileMode.Create, isf))
                 {
                     using (StreamWriter sw = new StreamWriter(isfs))
                     {
@@ -575,14 +505,15 @@ namespace SpaceScribble
         {
             using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication())
             {
-                bool hasExisted = isf.FileExists(@"settings.txt");
+                bool hasExisted = isf.FileExists(SETTINGS_FILE);
 
-                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(@"settings.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite, isf))
+                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(SETTINGS_FILE, FileMode.OpenOrCreate, FileAccess.ReadWrite, isf))
                 {
                     if (hasExisted)
                     {
                         using (StreamReader sr = new StreamReader(isfs))
                         {
+                            isInvalidated = false;
                             this.musicValue = (SoundValues)Enum.Parse(musicValue.GetType(), sr.ReadLine(), true);
                             this.sfxValue = (SoundValues)Enum.Parse(sfxValue.GetType(), sr.ReadLine(), true);
                             this.vibrationValue = (ToggleValues)Enum.Parse(vibrationValue.GetType(), sr.ReadLine(), true);
@@ -606,6 +537,10 @@ namespace SpaceScribble
                         }
                     }
                 }
+
+                // Delete the old file
+                if (isf.FileExists(OLD_SETTINGS_FILE))
+                    isf.DeleteFile(OLD_SETTINGS_FILE);
             }
         }
 
@@ -680,7 +615,12 @@ namespace SpaceScribble
 
         public float GetNeutralPosition()
         {
-            switch (settingsManager.neutralPositionValue)
+            return GetNeutralPositionValue(settingsManager.neutralPositionValue);
+        }
+
+        private float GetNeutralPositionValue(NeutralPositionValues value)
+        {
+            switch (value)
             {
                 case NeutralPositionValues.Angle0:
                     return 0.0f;
@@ -697,8 +637,49 @@ namespace SpaceScribble
                 case NeutralPositionValues.Angle40:
                     return (float)Math.PI * 40.0f / 180.0f;
 
+                case NeutralPositionValues.Angle50:
+                    return (float)Math.PI * 50.0f / 180.0f;
+
+                case NeutralPositionValues.Angle60:
+                    return (float)Math.PI * 60.0f / 180.0f;
+
                 default:
                     return 0.0f;
+            }
+        }
+
+        public float GetNeutralPositionRadianValue(float angle)
+        {
+            return (float)Math.PI * angle / 180.0f;
+        }
+
+        public int GetNeutralPositionIndex()
+        {
+            switch (settingsManager.neutralPositionValue)
+            {
+                case NeutralPositionValues.Angle0:
+                    return 0;
+
+                case NeutralPositionValues.Angle10:
+                    return 1;
+
+                case NeutralPositionValues.Angle20:
+                    return 2;
+
+                case NeutralPositionValues.Angle30:
+                    return 3;
+
+                case NeutralPositionValues.Angle40:
+                    return 4;
+
+                case NeutralPositionValues.Angle50:
+                    return 5;
+
+                case NeutralPositionValues.Angle60:
+                    return 6;
+
+                default:
+                    return -1;
             }
         }
 
@@ -715,6 +696,25 @@ namespace SpaceScribble
                 default:
                     return true;
             }
+        }
+
+        #endregion
+
+        #region Activate/Deactivate
+
+        public void Activated(StreamReader reader)
+        {
+            opacity = Single.Parse(reader.ReadLine());
+            isInvalidated = Boolean.Parse(reader.ReadLine());
+            neutralPositionValue = (NeutralPositionValues)Enum.Parse(neutralPositionValue.GetType(), reader.ReadLine(), false);
+
+        }
+
+        public void Deactivated(StreamWriter writer)
+        {
+            writer.WriteLine(opacity);
+            writer.WriteLine(isInvalidated);
+            writer.WriteLine(neutralPositionValue);
         }
 
         #endregion

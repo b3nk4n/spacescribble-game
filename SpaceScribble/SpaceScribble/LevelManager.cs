@@ -135,9 +135,15 @@ namespace SpaceScribble
             {
                 comp.SetLevel(lvl);
             }
-
-            //this.hasChanged = true;
         }
+
+        public void SetLevel(int level)
+        {
+            currentLevel = level;
+
+            SetLevelAll(currentLevel);
+        }
+
 
         public void Reset()
         {

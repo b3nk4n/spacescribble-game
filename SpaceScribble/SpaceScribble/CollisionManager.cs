@@ -1032,7 +1032,8 @@ namespace SpaceScribble
             {
                 Sprite shot = shots[i];
 
-                if (shot.IsCircleColliding(playerManager.playerSprite.Center,
+                if (!playerManager.IsDestroyed &&
+                    shot.IsCircleColliding(playerManager.playerSprite.Center,
                                            playerManager.playerSprite.CollisionRadius))
                 {
                     playerManager.DecreaseHitPoints(rand.Next(EnemyManager.DAMAGE_LASER_MIN,
@@ -1067,7 +1068,8 @@ namespace SpaceScribble
             {
                 Sprite shot = shots[i];
 
-                if (shot.IsCircleColliding(playerManager.playerSprite.Center,
+                if (!playerManager.IsDestroyed &&
+                    shot.IsCircleColliding(playerManager.playerSprite.Center,
                                            playerManager.playerSprite.CollisionRadius))
                 {
                     playerManager.DecreaseHitPoints(rand.Next(BossManager.DAMAGE_LASER_MIN,
@@ -1102,7 +1104,8 @@ namespace SpaceScribble
             {
                 Enemy enemy = enemies[i];
 
-                if (enemy.EnemySprite.IsCircleColliding(playerManager.playerSprite.Center,
+                if (!playerManager.IsDestroyed &&
+                    enemy.EnemySprite.IsCircleColliding(playerManager.playerSprite.Center,
                                                         playerManager.playerSprite.CollisionRadius))
                 {
                     enemy.HitPoints -= Math.Max(enemy.HitPoints, 99.0f);
@@ -1128,7 +1131,8 @@ namespace SpaceScribble
             {
                 HarakiriEnemy enemy = enemies[i];
 
-                if (enemy.EnemySprite.IsCircleColliding(playerManager.playerSprite.Center,
+                if (!playerManager.IsDestroyed &&
+                    enemy.EnemySprite.IsCircleColliding(playerManager.playerSprite.Center,
                                                         playerManager.playerSprite.CollisionRadius))
                 {
                     enemy.HitPoints -= Math.Max(enemy.HitPoints, 99.0f);
@@ -1154,7 +1158,8 @@ namespace SpaceScribble
             {
                 Boss boss = bosses[i];
 
-                if (boss.BossSprite.IsCircleColliding(playerManager.playerSprite.Center,
+                if (!playerManager.IsDestroyed &&
+                    boss.BossSprite.IsCircleColliding(playerManager.playerSprite.Center,
                                                         playerManager.playerSprite.CollisionRadius))
                 {
                     playerManager.Kill();
@@ -1172,7 +1177,8 @@ namespace SpaceScribble
             {
                 DestroyableAsteroid asteroid = asteroids[i];
 
-                if (asteroid.IsCircleColliding(playerManager.playerSprite.Center,
+                if (!playerManager.IsDestroyed &&
+                    asteroid.IsCircleColliding(playerManager.playerSprite.Center,
                                                playerManager.playerSprite.CollisionRadius))
                 {
                     EffectManager.AddAsteroidExplosion(asteroid.Center,

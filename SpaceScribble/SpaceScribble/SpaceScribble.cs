@@ -10,6 +10,7 @@ using System.IO.IsolatedStorage;
 using System.IO;
 using SpaceScribble.Inputs;
 using Microsoft.Advertising.Mobile.Xna;
+using Microsoft.Advertising;
 
 namespace SpaceScribble
 {
@@ -30,29 +31,19 @@ namespace SpaceScribble
         private const string HighscoreText = "Personal Highscore!";
         private const string GameOverText = "GAME OVER!";
 
-        private const string KeyboardTitleTextBad = "Try again!";
-        private const string KeyboardTitleTextVeryLow = "Not bad!";
-        private const string KeyboardTitleTextLow = "Well done!";
-        private const string KeyboardTitleTextMed = "Congratulation!";
-        private const string KeyboardTitleTextHigh = "Nice!";
-        private const string KeyboardTitleTextVeryHigh = "Amazing!";
-        private const string KeyboardTitleTextUltra = "Awesome!";
-        private const string KeyboardTitleTextUltraPlus = "Excellent!";
-        private const string KeyboardTitleTextGodlike = "God? Is it you?";
-
         private const string KeyboardInLocalMessageFormatText = "You are locally ranked {0}/10!\nPlease enter your name...\n[only: A..Z, a..z, 0..9, 12 characters]";
         private const string KeyboardNotInLocalMessageFormatText = "You are not locally ranked!\nPlease enter your name for online submission...\n[only: A..Z, a..z, 0..9, 12 characters]";
 
         private const string ContinueText = "Push to continue...";
         private string VersionText;
         private const string MusicByText = "Music by";
-        private const string MusicCreatorText = "Koray Tosun";
+        private const string MusicCreatorText = "PLSQMPRFKT";
         private const string CreatorText = "by B. Sautermeister";
 
         enum GameStates
         {
-            TitleScreen, MainMenu, Highscores, Inscructions, Help, Settings, Playing, AsteroidShower, BossDuell, Paused, PlayerDead, GameOver, Leaderboards, Submittion,
-            SelectShip
+            TitleScreen, MainMenu, Highscores, Instructions, Help, Settings, Playing, AsteroidShower, BossDuell, Paused, PlayerDead, GameOver, Leaderboards, Submittion,
+            SelectShipAnsPhonePosition
         };
 
         GameStates gameState = GameStates.TitleScreen;
@@ -74,9 +65,9 @@ namespace SpaceScribble
 
         CollisionManager collisionManager;
 
-        SpriteFont pericles14;
         SpriteFont pericles16;
         SpriteFont pericles18;
+        SpriteFont pericles20;
         SpriteFont pericles32;
 
         ZoomTextManager zoomTextManager;
@@ -135,7 +126,7 @@ namespace SpaceScribble
         private readonly Rectangle continueDestination = new Rectangle(120, 510,
                                                                        240, 80);
 
-        SpaceshipManager spaceshipManager;
+        SpaceshipManager spaceshipAndPhonePositionManager;
 
         private bool bannerLoaded;
 
@@ -211,7 +202,8 @@ namespace SpaceScribble
 #endif
             bannerAd.BorderEnabled = false;
             bannerAd.AdRefreshed += new EventHandler(bannerAd_AdRefreshed);
-            bannerAd.ErrorOccurred += new EventHandler<Microsoft.Advertising.AdErrorEventArgs>(bannerAd_ErrorOccurred);
+            //bannerAd.ErrorOccurred += new EventHandler<Microsoft.Advertising.AdErrorEventArgs>(bannerAd_ErrorOccurred);
+            bannerAd.ErrorOccurred += bannerAd_ErrorOccurred;
 
             spriteSheet = Content.Load<Texture2D>(@"Textures\SpriteSheet");
             menuSheet = Content.Load<Texture2D>(@"Textures\MenuSheet");
@@ -278,20 +270,20 @@ namespace SpaceScribble
 
             SoundManager.Initialize(Content);
 
-            pericles14 = Content.Load<SpriteFont>(@"Fonts\Pericles14");
             pericles16 = Content.Load<SpriteFont>(@"Fonts\Pericles16");
             pericles18 = Content.Load<SpriteFont>(@"Fonts\Pericles18");
+            pericles20 = Content.Load<SpriteFont>(@"Fonts\Pericles20");
             pericles32 = Content.Load<SpriteFont>(@"Fonts\Pericles32");
 
             zoomTextManager = new ZoomTextManager(new Vector2(this.GraphicsDevice.Viewport.Width / 2,
                                                               this.GraphicsDevice.Viewport.Height / 2),
-                                                              pericles16,
+                                                              pericles18,
                                                               pericles32);
 
             hud = Hud.GetInstance(GraphicsDevice.Viewport.Bounds,
                                   spriteSheet,
+                                  pericles20,
                                   pericles16,
-                                  pericles14,
                                   0,
                                   3,
                                   100.0f,
@@ -307,16 +299,17 @@ namespace SpaceScribble
                                   playerManager);
 
             highscoreManager = HighscoreManager.GetInstance();
-            HighscoreManager.Font = pericles18;
+            HighscoreManager.Font = pericles20;
             HighscoreManager.Texture = menuSheet;
 
             leaderboardManager = LeaderboardManager.GetInstance();
-            LeaderboardManager.Font = pericles18;
+            LeaderboardManager.Font = pericles20;
             LeaderboardManager.Texture = menuSheet;
             HighscoreManager.GameInput = gameInput;
 
             submissionManager = SubmissionManager.GetInstance();
-            SubmissionManager.Font = pericles18;
+            SubmissionManager.FontBig = pericles20;
+            SubmissionManager.FontSmall = pericles20;
             SubmissionManager.Texture = menuSheet;
             SubmissionManager.GameInput = gameInput;
 
@@ -329,7 +322,7 @@ namespace SpaceScribble
             levelManager.Register(playerManager);
 
             instructionManager = new InstructionManager(spriteSheet,
-                                                        pericles18,
+                                                        pericles20,
                                                         new Rectangle(0, 0,
                                                                       GraphicsDevice.Viewport.Width,
                                                                       GraphicsDevice.Viewport.Height),
@@ -339,7 +332,7 @@ namespace SpaceScribble
                                                         bossManager,
                                                         powerUpManager);
 
-            helpManager = new HelpManager(menuSheet, pericles18, new Rectangle(0, 0,
+            helpManager = new HelpManager(menuSheet, pericles20, new Rectangle(0, 0,
                                                                                GraphicsDevice.Viewport.Width,
                                                                                GraphicsDevice.Viewport.Height));
             HelpManager.GameInput = gameInput;
@@ -347,14 +340,14 @@ namespace SpaceScribble
 
 
             settingsManager = SettingsManager.GetInstance();
-            settingsManager.Initialize(menuSheet, pericles18, new Rectangle(0, 0,
+            settingsManager.Initialize(menuSheet, pericles20, new Rectangle(0, 0,
                                                                             GraphicsDevice.Viewport.Width,
                                                                             GraphicsDevice.Viewport.Height));
             SettingsManager.GameInput = gameInput;
 
-            spaceshipManager = new SpaceshipManager(menuSheet,
+            spaceshipAndPhonePositionManager = new SpaceshipManager(menuSheet,
                                                     spriteSheet,
-                                                    pericles18,
+                                                    pericles20,
                                                     playerManager,
                                                     highscoreManager);
             SpaceshipManager.GameInput = gameInput;
@@ -364,7 +357,7 @@ namespace SpaceScribble
             setupInputs();
         }
 
-        void bannerAd_ErrorOccurred(object sender, Microsoft.Advertising.AdErrorEventArgs e)
+        void bannerAd_ErrorOccurred(object sender, AdErrorEventArgs e)
         {
             bannerLoaded = false;
         }
@@ -386,7 +379,7 @@ namespace SpaceScribble
             highscoreManager.SetupInputs();
             settingsManager.SetupInputs();
             helpManager.SetupInputs();
-            spaceshipManager.SetupInputs();
+            spaceshipAndPhonePositionManager.SetupInputs();
         }
 
         /// <summary>
@@ -477,7 +470,7 @@ namespace SpaceScribble
 
             if (gameState == GameStates.Playing
                 || gameState == GameStates.PlayerDead
-                || gameState == GameStates.Inscructions
+                || gameState == GameStates.Instructions
                 || gameState == GameStates.BossDuell
                 || gameState == GameStates.AsteroidShower)
             {
@@ -492,7 +485,7 @@ namespace SpaceScribble
 
             if (gameState == GameStates.MainMenu || gameState == GameStates.Help ||
                 gameState == GameStates.Highscores || gameState == GameStates.Settings ||
-                gameState == GameStates.Submittion || gameState == GameStates.SelectShip)
+                gameState == GameStates.Submittion || gameState == GameStates.SelectShipAnsPhonePosition)
             {
                 gameState = GameStates.TitleScreen;
 
@@ -651,7 +644,7 @@ namespace SpaceScribble
                         if (gameInput.IsPressed(TitleAction))
                         {
                             gameState = GameStates.MainMenu;
-                            SoundManager.PlaySelectSound();
+                            SoundManager.PlayPaperSound();
                         }
                     }
 
@@ -675,7 +668,7 @@ namespace SpaceScribble
                     switch(mainMenuManager.LastPressedMenuItem)
                     {
                         case MainMenuManager.MenuItems.Start:
-                            gameState = GameStates.SelectShip;
+                            gameState = GameStates.SelectShipAnsPhonePosition;
                             break;
 
                         case MainMenuManager.MenuItems.Highscores:
@@ -684,11 +677,13 @@ namespace SpaceScribble
 
                         case MainMenuManager.MenuItems.Instructions:
                             resetGame();
-                            instructionManager.Reset();
+                            settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle20);
                             asteroidManager.Reset();
                             playerManager.SelectPlayerType(PlayerManager.PlayerType.Easy);
+                            instructionManager.Reset();
+                            instructionManager.IsAutostarted = false;
                             updateHud();
-                            gameState = GameStates.Inscructions;
+                            gameState = GameStates.Instructions;
                             break;
 
                         case MainMenuManager.MenuItems.Help:
@@ -707,7 +702,10 @@ namespace SpaceScribble
                     if (gameState != GameStates.MainMenu)
                     {
                         mainMenuManager.IsActive = false;
-                        handManager.HideHands();
+                        if (gameState == GameStates.Instructions)
+                            handManager.HideHandsAndScribble();
+                        else
+                            handManager.HideHands();
                     }
 
                     if (backButtonPressed)
@@ -715,37 +713,41 @@ namespace SpaceScribble
 
                     break;
 
-                case GameStates.SelectShip:
+                case GameStates.SelectShipAnsPhonePosition:
                     updateBackground(gameTime);
 
                     EffectManager.Update(gameTime);
 
-                    spaceshipManager.IsActive = true;
-                    spaceshipManager.Update(gameTime);
+                    spaceshipAndPhonePositionManager.IsActive = true;
+                    spaceshipAndPhonePositionManager.Update(gameTime);
 
                     zoomTextManager.Update();
 
-                    if (spaceshipManager.CancelClicked)
+                    if (spaceshipAndPhonePositionManager.CancelClicked || backButtonPressed)
                     {
-                        spaceshipManager.IsActive = false;
+                        spaceshipAndPhonePositionManager.IsActive = false;
                         gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
-                    else if (backButtonPressed)
+                    else if (spaceshipAndPhonePositionManager.GoClicked)
                     {
-                        spaceshipManager.IsActive = false;
-                        gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
-                    }
-                    else if (spaceshipManager.GoClicked)
-                    {
-                        spaceshipManager.IsActive = false;
+                        spaceshipAndPhonePositionManager.IsActive = false;
 
                         resetGame();
                         updateHud();
 
-                        gameState = GameStates.Playing;
-                        SoundManager.PlayStartGameSound();
+                        handManager.HideHandsAndScribble();
+                        if (instructionManager.HasDoneInstructions)
+                        {
+                            gameState = GameStates.Playing;
+                        }
+                        else
+                        {
+                            instructionManager.Reset();
+                            instructionManager.IsAutostarted = true;
+                            gameState = GameStates.Instructions;
+                        }
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -763,7 +765,7 @@ namespace SpaceScribble
                     {
                         highscoreManager.IsActive = false;
                         gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -777,26 +779,48 @@ namespace SpaceScribble
                     submissionManager.IsActive = true;
                     submissionManager.Update(gameTime);
 
-                    if (submissionManager.CancelClicked || backButtonPressed)
+                    highscoreMessageShown = false;
+
+                    zoomTextManager.Reset();
+
+                    if (submissionManager.ChangeNameClicked)
                     {
+                        submissionManager.ChangeNameClicked = false;
+
+                        if (!Guide.IsVisible && playerManager.PlayerScore > 0)
+                        {
+                            showGuid();
+                        }
+                    }
+                    else if (submissionManager.CancelClicked || backButtonPressed)
+                    {
+                        highscoreManager.SaveHighScore(submissionManager.Name,
+                                                       playerManager.PlayerScore,
+                                                       levelManager.CurrentLevel);
+
                         submissionManager.IsActive = false;
                         gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
                     else if (submissionManager.RetryClicked)
                     {
+                        highscoreManager.SaveHighScore(submissionManager.Name,
+                                                       playerManager.PlayerScore,
+                                                       levelManager.CurrentLevel);
+
                         submissionManager.IsActive = false;
                         resetGame();
                         updateHud();
+                        handManager.HideHandsAndScribble();
                         gameState = GameStates.Playing;
-                        SoundManager.PlayStartGameSound();
                     }
-
                     break;
 
-                case GameStates.Inscructions:
+                case GameStates.Instructions:
 
                     starFieldManager1.Update(gameTime);
+
+                    levelManager.SetLevel(1);
 
                     EffectManager.Update(gameTime);
                     playerManager.CanUpgrade = true;
@@ -809,10 +833,25 @@ namespace SpaceScribble
 
                     if (backButtonPressed)
                     {
-                        InstructionManager.HasDoneInstructions = true;
-                        gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
-                        playerManager.CanUpgrade = false;
+                        if (!instructionManager.HasDoneInstructions && instructionManager.EnougthInstructionsDone)
+                        {
+                            instructionManager.InstructionsDone();
+                            instructionManager.SaveHasDoneInstructions();
+                        }
+
+                        EffectManager.Reset();
+                        if (instructionManager.IsAutostarted)
+                        {
+                            resetGame();
+                            updateHud();
+                            handManager.HideHandsAndScribble();
+                            gameState = GameStates.Playing;
+                        }
+                        else
+                        {
+                            gameState = GameStates.MainMenu;
+                            SoundManager.PlayPaperSound();
+                        }
                     }
 
                     break;
@@ -830,7 +869,7 @@ namespace SpaceScribble
                     {
                         helpManager.IsActive = false;
                         gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -848,7 +887,7 @@ namespace SpaceScribble
                     {
                         settingsManager.IsActive = false;
                         gameState = GameStates.MainMenu;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -932,7 +971,7 @@ namespace SpaceScribble
                     {
                         stateBeforePaused = GameStates.Playing;
                         gameState = GameStates.Paused;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -995,7 +1034,7 @@ namespace SpaceScribble
                     {
                         stateBeforePaused = GameStates.AsteroidShower;
                         gameState = GameStates.Paused;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -1039,9 +1078,8 @@ namespace SpaceScribble
                             {
                                 bossBonusScore = InitialBossBonusScore;
                             }
-                            //levelManager.GoToNextLevel();
+
                             levelManager.GoToNextState();
-                            //zoomTextManager.ShowText("Level " + levelManager.CurrentLevel);
 
                             bossDirectKill = true;
                         }
@@ -1049,7 +1087,6 @@ namespace SpaceScribble
                         {
                             bossDirectKill = false;
 
-                            //levelManager.ResetLevelTimer();
                             levelManager.GoToLastEnemyState();
                         }
 
@@ -1082,7 +1119,6 @@ namespace SpaceScribble
                             bossDirectKill = false;
                         }
                         
-                        //levelManager.ResetLevelTimer();
                         levelManager.GoToLastEnemyState();
                     }
 
@@ -1090,7 +1126,7 @@ namespace SpaceScribble
                     {
                         stateBeforePaused = GameStates.BossDuell;
                         gameState = GameStates.Paused;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -1100,17 +1136,12 @@ namespace SpaceScribble
                     if (gameInput.IsPressed(BackToGameAction) || backButtonPressed)
                     {
                         gameState = stateBeforePaused;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     if (gameInput.IsPressed(BackToMainAction))
                     {
-                        SoundManager.PlaySelectSound();
-
-                        if (!Guide.IsVisible && playerManager.PlayerScore > 0)
-                        {
-                            showGuid();
-                        }
+                        SoundManager.PlayPaperSound();
 
                         if (playerManager.PlayerScore > 0)
                         {
@@ -1166,7 +1197,7 @@ namespace SpaceScribble
                         asteroidManager.IsActive = true;
                         stateBeforePaused = GameStates.PlayerDead;
                         gameState = GameStates.Paused;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -1190,24 +1221,17 @@ namespace SpaceScribble
                     {
                         asteroidManager.DeactivateShower();
 
-                        if (!Guide.IsVisible && playerManager.PlayerScore > 0)
+                        playerDeathTimer = 0.0f;
+                        titleScreenTimer = 0.0f;
+
+                        if (playerManager.PlayerScore > 0)
                         {
-                            showGuid();
+                            gameState = GameStates.Submittion;
+                            submissionManager.SetUp(highscoreManager.LastName, playerManager.PlayerScore, levelManager.CurrentLevel, playerManager.Credits);
                         }
                         else
                         {
-                            playerDeathTimer = 0.0f;
-                            titleScreenTimer = 0.0f;
-
-                            if (playerManager.PlayerScore > 0)
-                            {
-                                gameState = GameStates.Submittion;
-                                submissionManager.SetUp(highscoreManager.LastName, playerManager.PlayerScore, levelManager.CurrentLevel, playerManager.Credits);
-                            }
-                            else
-                            {
-                                gameState = GameStates.MainMenu;
-                            }
+                            gameState = GameStates.MainMenu;
                         }
                     }
 
@@ -1215,7 +1239,7 @@ namespace SpaceScribble
                     {
                         stateBeforePaused = GameStates.GameOver;
                         gameState = GameStates.Paused;
-                        SoundManager.PlaySelectSound();
+                        SoundManager.PlayPaperSound();
                     }
 
                     break;
@@ -1235,7 +1259,7 @@ namespace SpaceScribble
                 gameState == GameStates.Settings ||
                 gameState == GameStates.TitleScreen ||
                 gameState == GameStates.Submittion ||
-                gameState == GameStates.SelectShip ||
+                gameState == GameStates.SelectShipAnsPhonePosition ||
                 gameState == GameStates.Highscores)
             {
                 adGameComponent.Visible = true;
@@ -1272,33 +1296,33 @@ namespace SpaceScribble
                                                200),
                                  Color.White);
 
-                spriteBatch.DrawString(pericles18,
+                spriteBatch.DrawString(pericles20,
                                        ContinueText,
-                                       new Vector2(this.GraphicsDevice.Viewport.Width / 2 - pericles18.MeasureString(ContinueText).X / 2,
+                                       new Vector2(this.GraphicsDevice.Viewport.Width / 2 - pericles20.MeasureString(ContinueText).X / 2,
                                                    455),
                                        Color.Black * (0.25f + (float)(Math.Pow(Math.Sin(gameTime.TotalGameTime.TotalSeconds), 2.0f)) * 0.75f));
 
-                spriteBatch.DrawString(pericles16,
+                spriteBatch.DrawString(pericles20,
                                        MusicByText,
-                                       new Vector2(this.GraphicsDevice.Viewport.Width / 2 - pericles18.MeasureString(MusicByText).X / 2,
+                                       new Vector2(this.GraphicsDevice.Viewport.Width / 2 - pericles20.MeasureString(MusicByText).X / 2,
                                                    634),
                                        Color.Black);
-                spriteBatch.DrawString(pericles16,
+                spriteBatch.DrawString(pericles20,
                                        MusicCreatorText,
-                                       new Vector2(this.GraphicsDevice.Viewport.Width / 2 - pericles18.MeasureString(MusicCreatorText).X / 2,
+                                       new Vector2(this.GraphicsDevice.Viewport.Width / 2 - pericles20.MeasureString(MusicCreatorText).X / 2,
                                                    663),
                                        Color.Black);
 
-                spriteBatch.DrawString(pericles16,
+                spriteBatch.DrawString(pericles18,
                                        VersionText,
-                                       new Vector2(this.GraphicsDevice.Viewport.Width - (pericles16.MeasureString(VersionText).X + 15),
-                                                   this.GraphicsDevice.Viewport.Height - (pericles16.MeasureString(VersionText).Y + 10)),
+                                       new Vector2(this.GraphicsDevice.Viewport.Width - (pericles18.MeasureString(VersionText).X + 15),
+                                                   this.GraphicsDevice.Viewport.Height - (pericles18.MeasureString(VersionText).Y + 10)),
                                        Color.Black);
 
-                spriteBatch.DrawString(pericles16,
+                spriteBatch.DrawString(pericles18,
                                        CreatorText,
                                        new Vector2(15,
-                                                   this.GraphicsDevice.Viewport.Height - (pericles16.MeasureString(CreatorText).Y + 10)),
+                                                   this.GraphicsDevice.Viewport.Height - (pericles18.MeasureString(CreatorText).Y + 10)),
                                        Color.Black);
             }
 
@@ -1311,13 +1335,13 @@ namespace SpaceScribble
                 mainMenuManager.Draw(spriteBatch);
             }
 
-            if (gameState == GameStates.SelectShip)
+            if (gameState == GameStates.SelectShipAnsPhonePosition)
             {
                 drawBackground(spriteBatch);
 
                 EffectManager.Draw(spriteBatch);
 
-                spaceshipManager.Draw(spriteBatch);
+                spaceshipAndPhonePositionManager.Draw(spriteBatch);
 
                 zoomTextManager.Draw(spriteBatch);
             }
@@ -1340,7 +1364,7 @@ namespace SpaceScribble
                 submissionManager.Draw(spriteBatch);
             }
 
-            if (gameState == GameStates.Inscructions)
+            if (gameState == GameStates.Instructions)
             {
                 drawPaper(spriteBatch);
 
@@ -1435,17 +1459,7 @@ namespace SpaceScribble
                 hud.Draw(spriteBatch);
             }
 
-            // Advertisment stuff
-            //if (gameState == GameStates.Help ||
-            //    gameState == GameStates.MainMenu ||
-            //    gameState == GameStates.Paused ||
-            //    gameState == GameStates.Settings ||
-            //    gameState == GameStates.TitleScreen ||
-            //    gameState == GameStates.Submittion ||
-            //    gameState == GameStates.SelectShip)
-            //{
-                adGameComponent.Draw(gameTime);
-            //}
+            adGameComponent.Draw(gameTime);
 
             handManager.Draw(spriteBatch);
 
@@ -1571,23 +1585,14 @@ namespace SpaceScribble
 
             if (!string.IsNullOrEmpty(name))
             {
+                SoundManager.PlayWritingSound();
+
                 submissionManager.SetUp(name,
                                         playerManager.PlayerScore,
                                         levelManager.CurrentLevel,
                                         playerManager.Credits);
-
-                highscoreManager.SaveHighScore(name,
-                                               playerManager.PlayerScore,
-                                               levelManager.CurrentLevel);
+                highscoreManager.LastName = name;
             }
-            else
-            {
-                gameState = GameStates.MainMenu;
-            }
-
-            highscoreManager.IncreaseTotalCredits(playerManager.Credits);
-
-            highscoreMessageShown = false;
         }
 
         /// <summary>
@@ -1612,32 +1617,6 @@ namespace SpaceScribble
         {
             int rank = highscoreManager.GetRank(playerManager.PlayerScore);
 
-            string title = KeyboardTitleTextBad;
-
-            if (playerManager.PlayerScore > 10000)
-                title = KeyboardTitleTextVeryLow;
-
-            if (playerManager.PlayerScore > 50000)
-                title = KeyboardTitleTextLow;
-
-            if (playerManager.PlayerScore > 100000)
-                title = KeyboardTitleTextMed;
-
-            if (playerManager.PlayerScore > 250000)
-                title = KeyboardTitleTextHigh;
-
-            if (playerManager.PlayerScore > 500000)
-                title = KeyboardTitleTextVeryHigh;
-
-            if (playerManager.PlayerScore > 1000000)
-                title = KeyboardTitleTextUltra;
-
-            if (playerManager.PlayerScore > 2500000)
-                title = KeyboardTitleTextUltraPlus;
-
-            if (playerManager.PlayerScore > 10000000)
-                title = KeyboardTitleTextGodlike;
-
             string text;
 
             if (highscoreManager.IsInScoreboard(playerManager.PlayerScore))
@@ -1649,8 +1628,10 @@ namespace SpaceScribble
                 text = KeyboardNotInLocalMessageFormatText;
             }
 
+            SoundManager.PlayWritingSound();
+
             Guide.BeginShowKeyboardInput(PlayerIndex.One,
-                                         title,
+                                         "Enter your name",
                                          text,
                                          highscoreManager.LastName,
                                          keyboardCallback,

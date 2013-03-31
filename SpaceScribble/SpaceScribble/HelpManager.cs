@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using SpaceScribble.Inputs;
 using Microsoft.Xna.Framework.Input.Touch;
 using Microsoft.Phone.Tasks;
+using SpaceScribble.Extensions;
 
 namespace SpaceScribble
 {
@@ -23,7 +24,9 @@ namespace SpaceScribble
 
         private const string Email = "apps@bsautermeister.de";
         private const string EmailSubject = "SpaceScribble - Support";
-        private const string Blog = "bsautermeister.de/blog";
+        private const string Blog = "bsautermeister.de";
+        private const string MusicTitle = "Music sponsor:";
+        private const string Music = "PLSQMPRFKT";
 
         private readonly Rectangle screenBounds;
 
@@ -35,16 +38,26 @@ namespace SpaceScribble
         private bool isActive = false;
 
         private WebBrowserTask browser;
-        private const string BROWSER_URL = "http://bsautermeister.de/blog";
+        private const string BSAUTERMEISTER_URL = "http://bsautermeister.de";
+        private const string SOUND_URL = "https://soundcloud.com/plsqmprfkt";
 
-        private readonly Rectangle EmailDestination = new Rectangle(90,500,
-                                                                    300,50);
-        private readonly Rectangle BlogDestination = new Rectangle(90, 580,
+        private readonly Rectangle EmailDestination = new Rectangle(90, 420,
                                                                     300, 50);
+        private readonly Rectangle BlogDestination = new Rectangle(90, 490,
+                                                                    300, 50);
+
+        private const int MusicLocationY = 630;
 
         public static GameInput GameInput;
         private const string EmailAction = "Email";
         private const string BlogAction = "Blog";
+        private const string MusicAction = "Music";
+
+        private readonly Rectangle SoundCloudSource = new Rectangle(500, 900,
+                                                                   240, 115);
+
+        private readonly Rectangle SoundCloudDestination = new Rectangle(120, 570,
+                                                                         240, 115);
 
         #endregion
 
@@ -53,7 +66,6 @@ namespace SpaceScribble
         public HelpManager(Texture2D tex, SpriteFont font, Rectangle screenBounds)
         {
             this.browser = new WebBrowserTask();
-            this.browser.Uri = new Uri(BROWSER_URL);
 
             this.texture = tex;
             this.font = font;
@@ -72,6 +84,9 @@ namespace SpaceScribble
             GameInput.AddTouchGestureInput(BlogAction,
                                            GestureType.Tap,
                                            BlogDestination);
+            GameInput.AddTouchGestureInput(MusicAction,
+                                           GestureType.Tap,
+                                           SoundCloudDestination);
         }
 
         private void handleTouchInputs()
@@ -87,6 +102,14 @@ namespace SpaceScribble
             // Blog
             if (GameInput.IsPressed(BlogAction))
             {
+                this.browser.Uri = new Uri(BSAUTERMEISTER_URL);
+                browser.Show();
+            }
+
+            // Music
+            if (GameInput.IsPressed(MusicAction))
+            {
+                this.browser.Uri = new Uri(SOUND_URL);
                 browser.Show();
             }
         }
@@ -114,21 +137,42 @@ namespace SpaceScribble
                 spriteBatch.DrawString(font,
                        Content[i],
                        new Vector2((screenBounds.Width - font.MeasureString(Content[i]).X) / 2,
-                                   250 + (i * 35)),
+                                   245 + (i * 40)),
                        Color.Black * opacity);
             }
 
             spriteBatch.DrawString(font,
                        Email,
                        new Vector2((screenBounds.Width - font.MeasureString(Email).X) / 2,
-                                   515),
+                                   EmailDestination.Y + 15),
                        Color.Black * opacity);
 
             spriteBatch.DrawString(font,
                        Blog,
                        new Vector2((screenBounds.Width - font.MeasureString(Blog).X) / 2,
-                                   595),
+                                   BlogDestination.Y + 15),
                        Color.Black * opacity);
+
+            spriteBatch.Draw(texture,
+                             SoundCloudDestination,
+                             SoundCloudSource,
+                             Color.White * opacity * 0.66f);
+
+            spriteBatch.DrawStringBordered(
+                       font,
+                       MusicTitle,
+                       new Vector2((screenBounds.Width - font.MeasureString(MusicTitle).X) / 2,
+                                   MusicLocationY - 10),
+                       Color.Black * opacity,
+                       Color.White * opacity);
+
+            spriteBatch.DrawStringBordered(
+                       font,
+                       Music,
+                       new Vector2((screenBounds.Width - font.MeasureString(Music).X) / 2,
+                                   MusicLocationY + 15),
+                       Color.Black * opacity,
+                       Color.White * opacity);
         }
 
         #endregion

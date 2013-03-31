@@ -154,10 +154,10 @@ namespace SpaceScribble
 
             GameInput.AddTouchSlideInput(GoLeftAction,
                                          Input.Direction.Right,
-                                         50.0f);
+                                         40.0f);
             GameInput.AddTouchSlideInput(GoRightAction,
                                          Input.Direction.Left,
-                                         50.0f);
+                                         40.0f);
         }
 
         public static HighscoreManager GetInstance()
@@ -192,7 +192,7 @@ namespace SpaceScribble
                 else
                     scoreState = ScoreState.Local;
 
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Switcher left
             if (GameInput.IsPressed(GoLeftAction) && switchPageTimer > SwitchPageMinTimer)
@@ -214,7 +214,7 @@ namespace SpaceScribble
                 else
                     scoreState = ScoreState.Local;
 
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Resubmit
             if (GameInput.IsPressed(ResubmitAction))
@@ -226,7 +226,7 @@ namespace SpaceScribble
                                               topScores[0].Score,
                                               topScores[0].Level);
 
-                    SoundManager.PlaySelectSound();
+                    SoundManager.PlayPaperSound();
                 }
             }
             // Browser - Top100
@@ -234,7 +234,7 @@ namespace SpaceScribble
             {
                 if (scoreState != ScoreState.Local)
                 {
-                    SoundManager.PlaySelectSound();
+                    SoundManager.PlayPaperSound();
                     browser.Show();
                 }
             }
@@ -243,7 +243,7 @@ namespace SpaceScribble
             {
                 if (scoreState != ScoreState.Local)
                 {
-                    SoundManager.PlaySelectSound();
+                    SoundManager.PlayPaperSound();
                     leaderboardManager.Receive();
                 }
             }
@@ -1029,6 +1029,10 @@ namespace SpaceScribble
 
         public string LastName
         {
+            set
+            {
+                this.lastName = value;
+            }
             get
             {
                 return this.lastName;

@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework.Input.Touch;
 using System.IO.IsolatedStorage;
 using System.IO;
 using SpaceScribble.Extensions;
+using Microsoft.Phone.Applications.Common;
 
 
 namespace SpaceScribble
@@ -42,12 +43,12 @@ namespace SpaceScribble
         private readonly Rectangle SpaceshipSpeederSource = new Rectangle(600, 350,
                                                               100, 100);
 
-        private readonly Rectangle SpaceshipDestination = new Rectangle(190, 285,
+        private readonly Rectangle SpaceshipDestination = new Rectangle(190, 235,
                                                                         100, 100);
 
-        private readonly Rectangle LockSource = new Rectangle(240, 700,
+        private readonly Rectangle LockSource = new Rectangle(500, 1450,
                                                               50, 50);
-        private readonly Rectangle LockDestination = new Rectangle(215, 310,
+        private readonly Rectangle LockDestination = new Rectangle(215, 260,
                                                                    50, 50);
 
         public const long CREDITS_TO_UNLOCK_GREENHORNET = 1000000;
@@ -56,7 +57,7 @@ namespace SpaceScribble
         public const long CREDITS_TO_UNLOCK_HARD = 500000;
         public const long CREDITS_TO_UNLOCK_TANK = 750000;
 
-        private const int PriceTextPositionY = 450;
+        private const int PriceTextPositionY = 385;
         public const string PRICE_TITLE_TEXT = "Price:";
         public const string CREDITS_TO_UNLOCK_GREENHORNET_TEXT = "1000000 $";
         public const string CREDITS_TO_UNLOCK_MEDIUM_TEXT = "150000 $";
@@ -66,9 +67,9 @@ namespace SpaceScribble
 
         private readonly Rectangle ArrowRightSource = new Rectangle(340, 400,
                                                                   100, 100);
-        private readonly Rectangle ArrowRightDestination = new Rectangle(330, 285,
+        private readonly Rectangle ArrowRightDestination = new Rectangle(330, 235,
                                                                        100, 100);
-        private readonly Rectangle ArrowLeftDestination = new Rectangle(50, 285,
+        private readonly Rectangle ArrowLeftDestination = new Rectangle(50, 235,
                                                                        100, 100);
 
         private readonly Rectangle cancelSource = new Rectangle(0, 800,
@@ -119,11 +120,11 @@ namespace SpaceScribble
         private const int BarWidth = 150;
         private const int BarHeight = 10;
 
-        private Vector2 maxHitPointLocation = new Vector2(240, 440);
-        private Vector2 agilityLocation = new Vector2(240, 480);
-        private Vector2 firePowerLocation = new Vector2(240, 520);
-        private Vector2 fireSpeedLocation = new Vector2(240, 560);
-        private Vector2 accuracyLocation = new Vector2(240, 600);
+        private Vector2 maxHitPointLocation = new Vector2(240, 360);
+        private Vector2 agilityLocation = new Vector2(240, 395);
+        private Vector2 firePowerLocation = new Vector2(240, 430);
+        private Vector2 fireSpeedLocation = new Vector2(240, 465);
+        private Vector2 accuracyLocation = new Vector2(240, 500);
 
         private const string HP_TEXT = "HP";
         private const string AGILITY_TEXT = "Agility";
@@ -131,11 +132,11 @@ namespace SpaceScribble
         private const string FIRESPEED_TEXT = "Laser Speed";
         private const string ACCURACY_TEXT = "Accuracy";
 
-        private Vector2 maxHitPointTextLocation = new Vector2(90, 433);
-        private Vector2 agilityTextLocation = new Vector2(90, 473);
-        private Vector2 firePowerTextLocation = new Vector2(90, 513);
-        private Vector2 fireSpeedTextLocation = new Vector2(90, 553);
-        private Vector2 accuracyTextLocation = new Vector2(90, 593);
+        private Vector2 maxHitPointTextLocation = new Vector2(90, 353);
+        private Vector2 agilityTextLocation = new Vector2(90, 388);
+        private Vector2 firePowerTextLocation = new Vector2(90, 423);
+        private Vector2 fireSpeedTextLocation = new Vector2(90, 458);
+        private Vector2 accuracyTextLocation = new Vector2(90, 493);
 
         private const string SHIPDATA_FILE = "spaceship.txt";
 
@@ -146,8 +147,31 @@ namespace SpaceScribble
         private bool isGreenHornetUnlocked;
 
         private const string CREDITS_TEXT = "Credits:";
-        private readonly Vector2 creditsTextPosition = new Vector2(130, 244);
-        private readonly Vector2 creditsPosition = new Vector2(238, 244);
+        private readonly Vector2 creditsTextPosition = new Vector2(130, 194);
+        private readonly Vector2 creditsPosition = new Vector2(238, 194);
+
+        // Phone position:
+        private readonly string TEXT_PHONEPOSITION = "Hold your phone to the desired position:";
+
+        private readonly Rectangle[] PhoneSource = {new Rectangle(480, 0, 200, 256),
+                                                    new Rectangle(680, 0, 200, 256),
+                                                    new Rectangle(480, 300, 200, 256),
+                                                     new Rectangle(680, 300, 200, 256),
+                                                    new Rectangle(480, 600, 200, 256),
+                                                   new Rectangle(680, 600, 200, 256),
+                                                   new Rectangle(680, 1050, 200, 256)};
+        private readonly Rectangle PhoneUnknownSource = new Rectangle(480, 1050, 200, 256);
+
+        private readonly Rectangle PhoneSelectedDestination = new Rectangle(195, 560, 110, 140);
+
+        private readonly Rectangle PhoneRight1Destination = new Rectangle(295, 580, 78, 100);
+        private readonly Rectangle PhoneRight2Destination = new Rectangle(340, 590, 62, 80);
+        private readonly Rectangle PhoneLeft1Destination = new Rectangle(117, 580, 78, 100);
+        private readonly Rectangle PhoneLeft2Destination = new Rectangle(72, 590, 62, 80);
+
+        private readonly SettingsManager settingsManager;
+
+        private bool canStart;
 
         public SpaceshipManager(Texture2D mtex, Texture2D spriteSheet, SpriteFont font,
                                 PlayerManager player, HighscoreManager highscoreManager)
@@ -161,6 +185,11 @@ namespace SpaceScribble
             PrepareStrings();
 
             loadSpaceshipData();
+
+            settingsManager = SettingsManager.GetInstance();
+
+            AccelerometerHelper.Instance.ReadingChanged += new EventHandler<AccelerometerHelperReadingEventArgs>(OnAccelerometerHelperReadingChanged);
+            AccelerometerHelper.Instance.Active = true;
         }
 
         #region Methods
@@ -202,6 +231,15 @@ namespace SpaceScribble
 
             if (isActive)
             {
+                if (settingsManager.GetNeutralPositionIndex() >= 0)
+                {
+                    canStart = true;
+                }
+                else
+                {
+                    canStart = false;
+                }
+
                 switchShipTimer += elapsed;
 
                 if (this.opacity < OpacityMax)
@@ -308,7 +346,7 @@ namespace SpaceScribble
 
                 toggleSpaceshipLeft();
 
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Right
             if (GameInput.IsPressed(RightAction) && switchShipTimer > SwitchShipMinTimer)
@@ -317,7 +355,7 @@ namespace SpaceScribble
 
                 toggleSpaceshipRight();
 
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Go/Buy
             if (isCurrentSelectionUnlocked())
@@ -423,12 +461,23 @@ namespace SpaceScribble
                              0.0f);
 
             // Button select
+            Color startColor;
+
+            if (canStart)
+            {
+                startColor = Color.White * opacity;
+            }
+            else
+            {
+                startColor = Color.White * opacity * 0.5f;
+            }
+
             if (isCurrentSelectionUnlocked())
             {
                 spriteBatch.Draw(menuTexture,
                                  goDestination,
                                  goSource,
-                                 Color.White * opacity);
+                                 startColor);
 
                 drawMaxHitPoints(spriteBatch);
                 drawAgility(spriteBatch);
@@ -442,7 +491,7 @@ namespace SpaceScribble
                     spriteBatch.Draw(menuTexture,
                                  buyDestination,
                                  buySource,
-                                 Color.White * opacity);
+                                 startColor);
                 else
                     spriteBatch.Draw(menuTexture,
                                  buyDestination,
@@ -472,6 +521,70 @@ namespace SpaceScribble
                                    " $",
                                    pos,
                                    Color.Black * opacity);
+
+            // Phone position
+            drawPhonePosition(spriteBatch);
+        }
+
+        private void drawPhonePosition(SpriteBatch spriteBatch)
+        {
+                spriteBatch.DrawString(font,
+                                   TEXT_PHONEPOSITION,
+                                   new Vector2(240 - font.MeasureString(TEXT_PHONEPOSITION).X / 2,
+                                               530),
+                                   Color.Black * opacity);
+
+            // Phones:
+            int phoneIndex = settingsManager.GetNeutralPositionIndex();
+            int rightIndex = phoneIndex + 1;
+            int right2Index = phoneIndex + 2;
+            int leftIndex = phoneIndex - 1;
+            int left2Index = phoneIndex - 2;
+
+            if (phoneIndex >= 0 && phoneIndex < PhoneSource.Length)
+            {
+                if (leftIndex >= 0 && leftIndex < PhoneSource.Length)
+                    spriteBatch.Draw(
+                        menuTexture,
+                        PhoneLeft1Destination,
+                        PhoneSource[leftIndex],
+                        Color.White * 0.4f);
+
+                if (left2Index >= 0 && left2Index < PhoneSource.Length)
+                    spriteBatch.Draw(
+                        menuTexture,
+                        PhoneLeft2Destination,
+                        PhoneSource[left2Index],
+                        Color.White * 0.15f);
+
+                if (rightIndex >= 0 && rightIndex < PhoneSource.Length)
+                    spriteBatch.Draw(
+                        menuTexture,
+                        PhoneRight1Destination,
+                        PhoneSource[rightIndex],
+                        Color.White * 0.4f);
+
+                if (right2Index >= 0 && right2Index < PhoneSource.Length)
+                    spriteBatch.Draw(
+                        menuTexture,
+                        PhoneRight2Destination,
+                        PhoneSource[right2Index],
+                        Color.White * 0.15f);
+
+                spriteBatch.Draw(
+                    menuTexture,
+                    PhoneSelectedDestination,
+                    PhoneSource[phoneIndex],
+                    Color.White);
+            }
+            else
+            {
+                spriteBatch.Draw(
+                    menuTexture,
+                    PhoneSelectedDestination,
+                    PhoneUnknownSource,
+                    Color.White);
+            }
         }
 
         private void drawShipPrice(SpriteBatch spriteBatch)
@@ -768,6 +881,42 @@ namespace SpaceScribble
                         (int)(150 - (playerManager.InitInaccuracy - 7) * 37.5),
                         BarHeight),
                     Color.Black * 0.75f);
+        }
+
+        private void OnAccelerometerHelperReadingChanged(object sender, AccelerometerHelperReadingEventArgs e)
+        {
+            if (isActive)
+            {
+                Vector3 currentAccValue = new Vector3((float)e.AverageAcceleration.X,
+                                          (float)e.AverageAcceleration.Y,
+                                          (float)e.AverageAcceleration.Z);
+
+                if (currentAccValue.Z > 0.001f || Math.Abs(currentAccValue.X) > 0.5f)
+                {
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Unsupported);
+                    return;
+                }
+
+                float val = -(float)Math.Asin(currentAccValue.Y);
+
+                if (val >= settingsManager.GetNeutralPositionRadianValue(-10.0f) && val < settingsManager.GetNeutralPositionRadianValue(5.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle0);
+                else if (val >= settingsManager.GetNeutralPositionRadianValue(5.0f) && val < settingsManager.GetNeutralPositionRadianValue(15.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle10);
+                else if (val >= settingsManager.GetNeutralPositionRadianValue(15.0f) && val < settingsManager.GetNeutralPositionRadianValue(25.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle20);
+                else if (val >= settingsManager.GetNeutralPositionRadianValue(25.0f) && val < settingsManager.GetNeutralPositionRadianValue(35.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle30);
+                else if (val >= settingsManager.GetNeutralPositionRadianValue(35.0f) && val < settingsManager.GetNeutralPositionRadianValue(45.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle40);
+                else if (val >= settingsManager.GetNeutralPositionRadianValue(45.0f) && val < settingsManager.GetNeutralPositionRadianValue(55.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle50);
+                else if (val >= settingsManager.GetNeutralPositionRadianValue(55.0f) && val < settingsManager.GetNeutralPositionRadianValue(70.0f))
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Angle60);
+                else
+                    settingsManager.SetNeutralPosition(SettingsManager.NeutralPositionValues.Unsupported);
+            }
+
         }
 
         #region Load/Save

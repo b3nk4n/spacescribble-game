@@ -43,9 +43,12 @@ namespace SpaceScribble
         private Rectangle settingsDestination = new Rectangle(120, 605,
                                                           240, 80);
 
+        private bool isReviewDisplayed = true;
+        private Rectangle reviewSource = new Rectangle(240, 700,
+                                                       100, 100);
         private Rectangle moreGamesSource = new Rectangle(240, 500,
                                                        100, 100);
-        private Rectangle moreGamesDestination = new Rectangle(15, 690,
+        private Rectangle moreGamesOrReviewDestination = new Rectangle(15, 690,
                                                             100, 100);
 
         private Rectangle helpSource = new Rectangle(240, 400,
@@ -68,11 +71,14 @@ namespace SpaceScribble
         private const string HighscoresAction = "Highscores";
         private const string SettingsAction = "Settings";
         private const string HelpAction = "Help";
-        private const string MoreGamesAction = "MoreGames";
+        private const string MoreGamesOrReviewAction = "MoreGamesOrReview";
 
-        private MarketplaceSearchTask searchTask = new MarketplaceSearchTask();
+        private MarketplaceSearchTask searchTask;
+        private MarketplaceReviewTask reviewTask;
 
         private const string SEARCH_TERM = "Benjamin Sautermeister";
+
+        private Random rand = new Random();
 
         #endregion
 
@@ -82,6 +88,8 @@ namespace SpaceScribble
         {
             this.texture = spriteSheet;
             this.gameInput = input;
+
+            isReviewDisplayed = rand.Next(2) == 0;
         }
 
         #endregion
@@ -106,9 +114,9 @@ namespace SpaceScribble
                                            GestureType.Tap,
                                            helpDestination);
 
-            gameInput.AddTouchGestureInput(MoreGamesAction,
+            gameInput.AddTouchGestureInput(MoreGamesOrReviewAction,
                                            GestureType.Tap,
-                                           moreGamesDestination);
+                                           moreGamesOrReviewDestination);
         }
 
         public void Update(GameTime gameTime)
@@ -141,21 +149,10 @@ namespace SpaceScribble
                              highscoresSource,
                              Color.White * opacity);
 
-            if (InstructionManager.HasDoneInstructions)
-            {
-                spriteBatch.Draw(texture,
-                                 instructionsDestination,
-                                 instructionsSource,
-                                 Color.White * opacity);
-            }
-            else
-            {
-                spriteBatch.Draw(texture,
-                                 new Rectangle(instructionsDestination.X - 60, instructionsDestination.Y - 10,
-                                               instructionsDestination.Width + 120, instructionsDestination.Height + 20),
-                                 instructionsSource,
-                                 Color.White * opacity * (0.25f + (float)(Math.Pow(Math.Sin(time * 2), 2.0f)) * 0.75f));
-            }
+            spriteBatch.Draw(texture,
+                                instructionsDestination,
+                                instructionsSource,
+                                Color.White * opacity);
 
             spriteBatch.Draw(texture,
                              helpDestination,
@@ -167,10 +164,20 @@ namespace SpaceScribble
                              settingsSource,
                              Color.White * opacity);
 
-            spriteBatch.Draw(texture,
-                             moreGamesDestination,
+            if (isReviewDisplayed)
+            {
+                spriteBatch.Draw(texture,
+                             moreGamesOrReviewDestination,
+                             reviewSource,
+                             Color.White * opacity);
+            }
+            else
+            {
+                spriteBatch.Draw(texture,
+                             moreGamesOrReviewDestination,
                              moreGamesSource,
                              Color.White * opacity);
+            }
         }
 
         private void handleTouchInputs()
@@ -179,38 +186,48 @@ namespace SpaceScribble
             if (gameInput.IsPressed(StartAction))
             {
                 this.lastPressedMenuItem = MenuItems.Start;
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Highscores
             else if (gameInput.IsPressed(HighscoresAction))
             {
                 this.lastPressedMenuItem = MenuItems.Highscores;
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Instructions
             else if (gameInput.IsPressed(InstructionsAction))
             {
                 this.lastPressedMenuItem = MenuItems.Instructions;
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Help
             else if (gameInput.IsPressed(HelpAction))
             {
                 this.lastPressedMenuItem = MenuItems.Help;
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // Settings
             else if (gameInput.IsPressed(SettingsAction))
             {
                 this.lastPressedMenuItem = MenuItems.Settings;
-                SoundManager.PlaySelectSound();
+                SoundManager.PlayPaperSound();
             }
             // More games
-            else if (gameInput.IsPressed(MoreGamesAction))
+            else if (gameInput.IsPressed(MoreGamesOrReviewAction))
             {
-                searchTask.SearchTerms = SEARCH_TERM;
-                SoundManager.PlaySelectSound();
-                searchTask.Show();
+                if (isReviewDisplayed)
+                {
+                    reviewTask = new MarketplaceReviewTask();
+                    reviewTask.Show();
+                }
+                else
+                {
+                    searchTask = new MarketplaceSearchTask();
+                    searchTask.SearchTerms = SEARCH_TERM;
+                    searchTask.Show();
+                }
+                SoundManager.PlayPaperSound();
+
             }
             else
             {
@@ -228,6 +245,7 @@ namespace SpaceScribble
             this.opacity = Single.Parse(reader.ReadLine());
             this.isActive = Boolean.Parse(reader.ReadLine());
             this.time = Single.Parse(reader.ReadLine());
+            this.isReviewDisplayed = Boolean.Parse(reader.ReadLine());
         }
 
         public void Deactivated(StreamWriter writer)
@@ -236,6 +254,7 @@ namespace SpaceScribble
             writer.WriteLine(opacity);
             writer.WriteLine(isActive);
             writer.WriteLine(time);
+            writer.WriteLine(isReviewDisplayed);
         }
 
         #endregion

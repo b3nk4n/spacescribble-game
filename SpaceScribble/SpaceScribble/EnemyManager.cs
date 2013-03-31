@@ -637,6 +637,24 @@ namespace SpaceScribble
             path48.Add(new Vector2(240, -50));
             pathWayPoints.Add(path48);
             waveSpawns.Add(waveSpawns.Count, new WaveInfo(0, EnemyType.Easy));
+
+            // new in 1.3
+            // diagonal and down
+            List<Vector2> path49 = new List<Vector2>();
+            path49.Add(new Vector2(0, -50));
+            path49.Add(new Vector2(50, 50));
+            path49.Add(new Vector2(75, 100));
+            path49.Add(new Vector2(100, 850));
+            pathWayPoints.Add(path49);
+            waveSpawns.Add(waveSpawns.Count, new WaveInfo(0, EnemyType.Easy));
+
+            List<Vector2> path50 = new List<Vector2>();
+            path50.Add(new Vector2(480, -50));
+            path50.Add(new Vector2(430, 50));
+            path50.Add(new Vector2(405, 100));
+            path50.Add(new Vector2(380, 850));
+            pathWayPoints.Add(path50);
+            waveSpawns.Add(waveSpawns.Count, new WaveInfo(0, EnemyType.Easy));
         }
 
         public void SpawnEnemy(int path, EnemyType type)
@@ -772,38 +790,7 @@ namespace SpaceScribble
                 }
                 else
                 {
-                    float rndShot = (float)rand.Next(0, ((int)(2000))) / 10;
-
-                    if (rndShot <= enemy.ShotChance &&
-                        !playerManager.IsDestroyed &&
-                         screen.Contains((int)enemy.EnemySprite.Center.X,
-                                         (int)enemy.EnemySprite.Center.Y))
-                    {
-                        Vector2 fireLocation = enemy.EnemySprite.Location;
-                        fireLocation += enemy.GunOffset;
-
-                        Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (2.0f + (float)rand.NextDouble() * 8.0f)) - fireLocation);
-
-                        shotDirection.Normalize();
-
-                        if (enemy.Type == EnemyType.Tank &&
-                            (float)rand.Next(0, 7) == 0) // 14.2%
-                        {
-                            EnemyShotManager.FireRocket(fireLocation,
-                                                             shotDirection,
-                                                             false,
-                                                             Color.White,
-                                                             true);
-                        }
-                        else
-                        {
-                            EnemyShotManager.FireShot(fireLocation,
-                                                      shotDirection,
-                                                      false,
-                                                      new Color(1.0f, 0.1f, 0.1f),
-                                                      true);
-                        }
-                    }
+                    fireShot(enemy);
                 }
             }
 
@@ -813,6 +800,42 @@ namespace SpaceScribble
             }
 
             updateHarakiries(gameTime);
+        }
+
+        private void fireShot(Enemy enemy)
+        {
+            float rndShot = (float)rand.Next(0, ((int)(2000))) / 10;
+
+            if (rndShot <= enemy.ShotChance &&
+                !playerManager.IsDestroyed &&
+                 screen.Contains((int)enemy.EnemySprite.Center.X,
+                                 (int)enemy.EnemySprite.Center.Y))
+            {
+                Vector2 fireLocation = enemy.EnemySprite.Location;
+                fireLocation += enemy.GunOffset;
+
+                Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (2.0f + (float)rand.NextDouble() * 8.0f)) - fireLocation);
+
+                shotDirection.Normalize();
+
+                if (enemy.Type == EnemyType.Tank &&
+                    (float)rand.Next(0, 7) == 0) // 14.2%
+                {
+                    EnemyShotManager.FireRocket(fireLocation,
+                                                     shotDirection,
+                                                     false,
+                                                     Color.White,
+                                                     true);
+                }
+                else
+                {
+                    EnemyShotManager.FireShot(fireLocation,
+                                              shotDirection,
+                                              false,
+                                              new Color(1.0f, 0.1f, 0.1f),
+                                              true);
+                }
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -953,7 +976,8 @@ namespace SpaceScribble
                     
                     if (harakiri.EnemySprite.Velocity.Length() < 7.5f)
                     {
-                        if (harakiriCampShotTimer >= HarakiriCampShotTimerMin)
+                        if (!playerManager.IsDestroyed &&
+                            harakiriCampShotTimer >= HarakiriCampShotTimerMin)
                         {
                             harakiriCampShotTimer = 0.0f;
                             fire = true;
@@ -1042,6 +1066,7 @@ namespace SpaceScribble
         {
             // Enemies
             int enemiesCount = Int32.Parse(reader.ReadLine());
+            Enemies.Clear();
 
             for (int i = 0; i < enemiesCount; ++i)
             {
@@ -1088,7 +1113,7 @@ namespace SpaceScribble
 
             // Wave spawns
             int waveSpawnsCount = Int32.Parse(reader.ReadLine());
-
+            // no clearing here, becase the wavespawns are initialized on startup.
             for (int i = 0; i < waveSpawnsCount; ++i)
             {
                 int idx = Int32.Parse(reader.ReadLine());
@@ -1103,6 +1128,7 @@ namespace SpaceScribble
 
             // Harakiries
             int harakiriesCount = Int32.Parse(reader.ReadLine());
+            Harakiries.Clear();
 
             for (int i = 0; i < harakiriesCount; ++i)
             {

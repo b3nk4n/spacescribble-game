@@ -303,6 +303,7 @@ namespace SpaceScribble
 
             //Waypoints
             int waypointsCount = Int32.Parse(reader.ReadLine());
+            wayPoints.Clear();
 
             for (int i = 0; i < waypointsCount; ++i)
             {

@@ -122,6 +122,9 @@ namespace SpaceScribble
         private float autofireStartTimer;
         private const float autofireStartMin = 2.0f;
 
+        // Scales opacity and speed at startup (0 -> 1)
+        private float startUpScale;
+
         #endregion
 
         #region Constructors
@@ -229,6 +232,8 @@ namespace SpaceScribble
             this.shotCounter = 0;
 
             this.autofireStartTimer = 0.0f;
+
+            this.startUpScale = 0;
         }
 
         public void resetUpgradeLevels()
@@ -1245,6 +1250,11 @@ namespace SpaceScribble
 
                 autofireStartTimer += elapsed;
 
+                startUpScale += elapsed;
+
+                if (startUpScale > 1)
+                    startUpScale = 1;
+
                 HandleTouchInput(TouchPanel.GetState());
                 HandleKeyboardInput(Keyboard.GetState());
 
@@ -1253,13 +1263,15 @@ namespace SpaceScribble
                     playerSprite.Velocity.Normalize();
                 }
 
-                playerSprite.Velocity *= (initPlayerSpeed + AGILITY_PER_UPGRADE * agilityUpgrades);
+                float startFactor = (float)Math.Pow(startUpScale, 2.0);
+
+                playerSprite.Velocity *= ((initPlayerSpeed + AGILITY_PER_UPGRADE * agilityUpgrades) * startFactor);
 
                 playerSprite.Rotation = MathHelper.PiOver2 * 3;
                 playerSprite.Update(gameTime);
                 adaptMovementLimits();
 
-                this.playerSprite.TintColor = Color.White;
+                this.playerSprite.TintColor = Color.White * startFactor;
 
                 // Special shot reload
                 if (specialShotReloadTimer <= 0.0f && SpecialShotsRemaining < MaxSpecialShots)
@@ -1288,7 +1300,9 @@ namespace SpaceScribble
         public void IncreaseUpgrades()
         {
             if (upgrades < UPGRADES_COUNT)
+            {
                 ++upgrades;
+            }
         }
 
         public void IncreaseShield()
@@ -1387,7 +1401,6 @@ namespace SpaceScribble
             this.livesRemaining = Int32.Parse(reader.ReadLine());
             this.SpecialShotsRemaining = Int32.Parse(reader.ReadLine());
 
-            //this.shotPower = Single.Parse(reader.ReadLine());
             this.hitPoints = Single.Parse(reader.ReadLine());
 
             this.shotTimer = Single.Parse(reader.ReadLine());
@@ -1414,6 +1427,8 @@ namespace SpaceScribble
             this.shotCounter = Int64.Parse(reader.ReadLine());
 
             this.autofireStartTimer = Single.Parse(reader.ReadLine());
+
+            this.startUpScale = Single.Parse(reader.ReadLine());
         }
 
         public void Deactivated(StreamWriter writer)
@@ -1426,7 +1441,6 @@ namespace SpaceScribble
             writer.WriteLine(this.livesRemaining);
             writer.WriteLine(this.SpecialShotsRemaining);
 
-            //writer.WriteLine(this.shotPower);
             writer.WriteLine(this.hitPoints);
 
             writer.WriteLine(this.shotTimer);
@@ -1453,6 +1467,8 @@ namespace SpaceScribble
             writer.WriteLine(shotCounter);
 
             writer.WriteLine(autofireStartTimer);
+
+            writer.WriteLine(startUpScale);
         }
 
         public static int GetUpdateLevelOfIndex(int index)

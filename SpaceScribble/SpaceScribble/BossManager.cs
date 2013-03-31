@@ -727,6 +727,7 @@ namespace SpaceScribble
         {
             // Bosses
             int bossesCount = Int32.Parse(reader.ReadLine());
+            Bosses.Clear();
 
             for (int i = 0; i < bossesCount; ++i)
             {
@@ -767,7 +768,7 @@ namespace SpaceScribble
 
             // Wave spawns
             int waveSpawnsCount = Int32.Parse(reader.ReadLine());
-
+            // Note: no list clearing here, because the list is setted up at startup.
             for (int i = 0; i < waveSpawnsCount; ++i)
             {
                 int idx = Int32.Parse(reader.ReadLine());

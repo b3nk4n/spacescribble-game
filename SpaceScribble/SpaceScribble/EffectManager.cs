@@ -51,8 +51,9 @@ namespace SpaceScribble
                                          Vector2.Zero,
                                          0.0f,
                                          0,
-                                         Color.White,
-                                         Color.White));
+                                         Color.Transparent,
+                                         Color.Transparent,
+                                         0.0f));
             }
 
             // Generate free explosion particles:
@@ -65,8 +66,9 @@ namespace SpaceScribble
                                          Vector2.Zero,
                                          0.0f,
                                          0,
-                                         Color.White,
-                                         Color.White));
+                                         Color.Transparent,
+                                         Color.Transparent,
+                                         0.0f));
             }
         }
 
@@ -132,8 +134,8 @@ namespace SpaceScribble
 
         public static void AddCustomExplosion(Vector2 location, Vector2 momentum, int minPointCount,
                                               int maxPointCount, int minPieceCount, int maxPieceCount,
-                                              float pieceSpeedScale, int duration, Color initialColor,
-                                              Color finalColor, bool sound)
+                                              float pieceSpeedScale, float duration, Color initialColor,
+                                              Color finalColor, float rotationSpeed, bool sound)
         {
             float explosionMaxSpeed = pieceSpeedScale;
 
@@ -157,7 +159,8 @@ namespace SpaceScribble
                                          ((float)rand.NextDouble()) * explosionMaxSpeed,
                                          duration,
                                          initialColor,
-                                         finalColor));
+                                         finalColor,
+                                         rotationSpeed));
                 }
                 else
                 {
@@ -169,7 +172,8 @@ namespace SpaceScribble
                                    ((float)rand.NextDouble()) * explosionMaxSpeed,
                                    duration,
                                    initialColor,
-                                   finalColor);
+                                   finalColor,
+                                   rotationSpeed);
                     ExplosionEffects.Add(p);
                 }
             }
@@ -188,7 +192,8 @@ namespace SpaceScribble
                                              ((float)rand.NextDouble()) * explosionMaxSpeed,
                                              duration,
                                              initialColor,
-                                             finalColor));
+                                             finalColor,
+                                             0.0f));
                 }
                 else
                 {
@@ -200,7 +205,8 @@ namespace SpaceScribble
                                    ((float)rand.NextDouble()) * explosionMaxSpeed,
                                    duration,
                                    initialColor,
-                                   finalColor);
+                                   finalColor,
+                                   0.0f);
                     PointEffects.Add(p);
                 }
 			}
@@ -218,9 +224,10 @@ namespace SpaceScribble
                                3,
                                5,
                                20.0f,
-                               50, 
+                               0.833f, 
                                Color.Black * (0.4f + (float)rand.NextDouble() * 0.4f),
                                Color.Black * 0.0f,
+                               0.025f,
                                true);
         }
 
@@ -233,9 +240,10 @@ namespace SpaceScribble
                                5,
                                8,
                                30.0f,
-                               100,
+                               1.66f,
                                Color.Black * (0.4f + (float)rand.NextDouble() * 0.4f),
                                Color.Black * 0.0f,
+                               0.025f,
                                true);
         }
 
@@ -248,9 +256,10 @@ namespace SpaceScribble
                                12,
                                15,
                                175.0f,
-                               35,
+                               0.6f,
                                Color.Black * (0.4f + (float)rand.NextDouble() * 0.4f),
                                Color.Black * 0.0f,
+                               0.025f,
                                true);
         }
 
@@ -274,9 +283,10 @@ namespace SpaceScribble
                                                   RandomDirection((float)rand.Next(10, 20)) + momentum * 0.75f,
                                                   Vector2.Zero,
                                                   40.0f,
-                                                  40,
+                                                  0.66f,
                                                   tintColor,
-                                                  tintColor * 0.0f));
+                                                  tintColor * 0.0f,
+                                                  0.1f));
                 }
                 else
                 {
@@ -286,9 +296,10 @@ namespace SpaceScribble
                                    RandomDirection((float)rand.Next(10, 20)) + momentum * 0.75f,
                                    Vector2.Zero,
                                    40.0f,
-                                   40,
+                                   0.66f,
                                    tintColor,
-                                   tintColor * 0.0f);
+                                   tintColor * 0.0f,
+                                   0.1f);
                     PointEffects.Add(p);
                 }
             }
@@ -311,9 +322,10 @@ namespace SpaceScribble
                                                   RandomDirection((float)rand.Next(10, 20)) * 3 + momentum * 0.25f,
                                                   Vector2.Zero,
                                                   60.0f,
-                                                  30,
+                                                  0.5f,
                                                   tintColor * 0.75f,
-                                                  tintColor * 0.0f));
+                                                  tintColor * 0.0f,
+                                                  0.1f));
                 }
                 else
                 {
@@ -323,14 +335,31 @@ namespace SpaceScribble
                                    RandomDirection((float)rand.Next(10, 20)) * 3 + momentum * 0.25f,
                                    Vector2.Zero,
                                    60.0f,
-                                   30,
+                                   0.5f,
                                    tintColor * 0.75f,
-                                   tintColor * 0.0f);
+                                   tintColor * 0.0f,
+                                   0.1f);
                     PointEffects.Add(p);
                 }
             }
 
             SoundManager.PlayHitSound();
+        }
+
+        public static void AddPlayerSmoke(Vector2 location, Vector2 momentum)
+        {
+            AddCustomExplosion(location,
+                               momentum,
+                               0,
+                               0,
+                               1,
+                               1,
+                               10.0f,
+                               0.66f,
+                               Color.Purple * 0.3f,
+                               Color.Purple * 0.0f,
+                               0.025f,
+                               false);
         }
 
         public static void AddAsteroidExplosion(Vector2 location, Vector2 momentum, bool sound)
@@ -342,9 +371,10 @@ namespace SpaceScribble
                                4,
                                10,
                                40.0f,
-                               75,
+                               1.25f,
                                Color.DarkGray * 0.5f,
                                Color.DarkGray * 0.0f,
+                               0.025f,
                                sound);
         }
 
@@ -357,9 +387,10 @@ namespace SpaceScribble
                                1,
                                1,
                                20.0f,
-                               30,
+                               0.5f,
                                Color.DarkGray * 0.25f,
                                Color.DarkGray * 0.0f,
+                               0.025f,
                                false);
         }
 
@@ -372,9 +403,10 @@ namespace SpaceScribble
                                1,
                                1,
                                10.0f,
-                               40,
+                               0.66f,
                                Color.DarkGray * 0.35f,
                                Color.DarkGray * 0.0f,
+                               0.025f,
                                false);
         }
 
@@ -404,7 +436,8 @@ namespace SpaceScribble
                                          0.0f,
                                          0,
                                          Color.Black,
-                                         Color.Black);
+                                         Color.Black,
+                                         0.0f);
                 p.Activated(reader);
                 ExplosionEffects.Add(p);
             }
@@ -423,7 +456,8 @@ namespace SpaceScribble
                                          0.0f,
                                          0,
                                          Color.Black,
-                                         Color.Black);
+                                         Color.Black,
+                                         0.0f);
                 p.Activated(reader);
                 PointEffects.Add(p);
             }
@@ -442,7 +476,8 @@ namespace SpaceScribble
                                          0.0f,
                                          0,
                                          Color.Black,
-                                         Color.Black);
+                                         Color.Black,
+                                         0.0f);
                 p.Activated(reader);
                 freeExplosionParticles.Enqueue(p);
             }
@@ -461,7 +496,8 @@ namespace SpaceScribble
                                          0.0f,
                                          0,
                                          Color.Black,
-                                         Color.Black);
+                                         Color.Black,
+                                         0.0f);
                 p.Activated(reader);
                 freePointParticles.Enqueue(p);
             }

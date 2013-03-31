@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using System.IO.IsolatedStorage;
+using SpaceScribble.Extensions;
 
 namespace SpaceScribble
 {
@@ -42,7 +43,7 @@ namespace SpaceScribble
             KillBoss,
             BossBonus,
             GoodLuck, 
-            ReturnWithBackButton};
+            Finished};
 
         private InstructionStates state = InstructionStates.Welcome;
 
@@ -74,6 +75,8 @@ namespace SpaceScribble
         private const float CreditsLimit = 77.0f;
         private const float KillBossLimit = 80.0f;
         private const float BossBonusLimit = 83.0f;
+        private const float GoodLuckLimit = 86.0f;
+        private const float FinishedLimit = 89.0f;
 
         private SpriteFont font;
 
@@ -131,7 +134,7 @@ namespace SpaceScribble
         private readonly string Upgrade7Text = "Shields";
         private readonly string Upgrade8Text = "Reload speed";
         private readonly string Upgrade9Text = "Laser upgrade";
-        private readonly string Upgrade10Text = "Repait kit";
+        private readonly string Upgrade10Text = "Repair kit";
         private readonly string[] UpgradeKeyText = {"Choosing the right upgrades", "plays a key role in SpaceScribble!"};
         private readonly string HitPointsText = "The HUD display your current hit points...";
         private readonly string ShieldText = "Your shield level...";
@@ -143,12 +146,20 @@ namespace SpaceScribble
         private readonly string[] BossBonusText = {"Kill the BOSS at the first try", "to gain bonus score!"};
         private readonly string GoodLuckText = "Good luck commander!";
         private readonly string ReturnWithBackButtonText = "Press BACK to return...";
+        private readonly string ContinueWithBackButtonText = "Press BACK to start the game...";
 
-        private static bool hasDoneInstructions = false;
+        private bool hasDoneInstructions = false;
+
+        private const string OLD_INSTRUCTION_FILE = "instructions2.txt";
+        private const string INSTRUCTION_FILE = "instructions3.txt";
 
         SettingsManager settings = SettingsManager.GetInstance();
 
         private bool powerUpsDropped;
+
+        private bool isInvalidated = false;
+
+        private bool isAutostarted;
 
         #endregion
 
@@ -192,13 +203,12 @@ namespace SpaceScribble
 
             if (playerManager.IsDestroyed)
             {
-                this.state = InstructionStates.ReturnWithBackButton;
+                this.state = InstructionStates.Finished;
 
                 powerUpManager.Update(gameTime);
                 enemyManager.Update(gameTime);
                 bossManager.Update(gameTime);
                 asteroidManager.IsActive = true;
-                return;
             }
             else if (progressTimer < WelcomeLimit)
             {
@@ -392,9 +402,17 @@ namespace SpaceScribble
 
                 powerUpManager.Update(gameTime);
             }
-            else
+            else if (progressTimer < GoodLuckLimit)
             {
                 this.state = InstructionStates.GoodLuck;
+
+                enemyManager.Update(gameTime);
+                bossManager.Update(gameTime);
+                powerUpManager.Update(gameTime);
+            }
+            else
+            {
+                this.state = InstructionStates.Finished;
 
                 enemyManager.Update(gameTime);
                 bossManager.Update(gameTime);
@@ -412,13 +430,13 @@ namespace SpaceScribble
                 case InstructionStates.Welcome:
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, WelcomeText);
+                    drawCenteredText(spriteBatch, WelcomeText);
                     break;
 
                 case InstructionStates.Movement:
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, MovementText);
+                    drawCenteredText(spriteBatch, MovementText);
                     break;
 
                 case InstructionStates.PrimaryShot:
@@ -439,7 +457,7 @@ namespace SpaceScribble
                                         Vector2.Zero,
                                         SpriteEffects.None,
                                         0.0f);
-                    drawRedCenteredText(spriteBatch, PrimaryShotText);
+                    drawCenteredText(spriteBatch, PrimaryShotText);
                 break;
 
                 case InstructionStates.SpecialShot:
@@ -455,7 +473,7 @@ namespace SpaceScribble
                                          Vector2.Zero,
                                          SpriteEffects.FlipHorizontally,
                                          0.0f);
-                        drawRedCenteredText(spriteBatch, SpecialShotAutofireText);
+                        drawCenteredText(spriteBatch, SpecialShotAutofireText);
                     }
                     else
                     {
@@ -476,29 +494,29 @@ namespace SpaceScribble
                                          Vector2.Zero,
                                          SpriteEffects.FlipHorizontally,
                                          0.0f);
-                        drawRedCenteredText(spriteBatch, SpecialShotText);
+                        drawCenteredText(spriteBatch, SpecialShotText);
                     }
                     break;
 
                 case InstructionStates.ChangeControls:
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, ChangeControlsText);
+                    drawCenteredText(spriteBatch, ChangeControlsText);
                     break;
 
                 case InstructionStates.Autofire:
                     playerManager.Draw(spriteBatch);
                     if (settings.GetAutofireValue())
-                        drawRedCenteredText(spriteBatch, AutofireDisableText);
+                        drawCenteredText(spriteBatch, AutofireDisableText);
                    else
-                        drawRedCenteredText(spriteBatch, AutofireEnableText);
+                        drawCenteredText(spriteBatch, AutofireEnableText);
                     break;
 
                 case InstructionStates.UpgradeCollect:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, UpgradeCollectText);
+                    drawCenteredText(spriteBatch, UpgradeCollectText);
                     break;
 
                 case InstructionStates.UpgradeActivate:
@@ -514,20 +532,20 @@ namespace SpaceScribble
                                      SpriteEffects.FlipHorizontally,
                                      0.0f);
 
-                    drawRedCenteredText(spriteBatch, UpgradeActivateText);
+                    drawCenteredText(spriteBatch, UpgradeActivateText);
                     break;
 
                 case InstructionStates.UpgradeSortiment:
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, UpgradeSortimentText);
+                    drawCenteredText(spriteBatch, UpgradeSortimentText);
                     break;
 
                 case InstructionStates.Upgrade1:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -535,15 +553,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade1Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade1Text);
                     break;
 
                 case InstructionStates.Upgrade2:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 1 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -551,15 +570,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade2Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade2Text);
                     break;
 
                 case InstructionStates.Upgrade3:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 2 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -567,15 +587,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade3Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade3Text);
                     break;
 
                 case InstructionStates.Upgrade4:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 3 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -583,15 +604,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade4Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade4Text);
                     break;
 
                 case InstructionStates.Upgrade5:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 4 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -599,15 +621,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade5Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade5Text);
                     break;
 
                 case InstructionStates.Upgrade6:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 5 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -615,15 +638,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade6Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade6Text);
                     break;
 
                 case InstructionStates.Upgrade7:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 6 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -631,15 +655,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade7Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade7Text);
                     break;
 
                 case InstructionStates.Upgrade8:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 7 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -647,15 +672,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade8Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade8Text);
                     break;
 
                 case InstructionStates.Upgrade9:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 8 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -663,15 +689,16 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade9Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade9Text);
                     break;
 
                 case InstructionStates.Upgrade10:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      new Rectangle(upgradeArrowDestination.X + 9 * Hud.UPGRADES_OFFSET_X, upgradeArrowDestination.Y,
                                                    upgradeArrowDestination.Width, upgradeArrowDestination.Height),
                                      arrowRightSource,
@@ -679,48 +706,52 @@ namespace SpaceScribble
                                      MathHelper.PiOver2,
                                      Vector2.Zero,
                                      SpriteEffects.None,
-                                     0.0f);
-                    drawRedCenteredText(spriteBatch, Upgrade10Text);
+                                     0.0f,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, Upgrade10Text);
                     break;
 
                 case InstructionStates.UpgradeKey:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, UpgradeKeyText);
+                    drawCenteredText(spriteBatch, UpgradeKeyText);
                     break;
 
                 case InstructionStates.HitPoints:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      hitPointsDestination,
                                      arrowRightSource,
-                                     arrowTint);
-                    drawRedCenteredText(spriteBatch, HitPointsText);
+                                     arrowTint,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, HitPointsText);
                     break;
 
                 case InstructionStates.Shield:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      shieldDestination,
                                      arrowRightSource,
-                                     arrowTint);
-                    drawRedCenteredText(spriteBatch, ShieldText);
+                                     arrowTint,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, ShieldText);
                     break;
 
                 case InstructionStates.Reload:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    spriteBatch.Draw(texture,
+                    spriteBatch.DrawBordered(texture,
                                      reloadDestination,
                                      arrowRightSource,
-                                     arrowTint);
-                    drawRedCenteredText(spriteBatch, ReloadText);
+                                     arrowTint,
+                                     Color.White);
+                    drawCenteredText(spriteBatch, ReloadText);
                     break;
 
                 case InstructionStates.BewareAsteroid:
@@ -728,7 +759,7 @@ namespace SpaceScribble
                     asteroidManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, BewareAsteroidsText);
+                    drawCenteredText(spriteBatch, BewareAsteroidsText);
                     break;
 
                 case InstructionStates.KillEnemies:
@@ -737,7 +768,7 @@ namespace SpaceScribble
                     enemyManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, KillEnemiesText);
+                    drawCenteredText(spriteBatch, KillEnemiesText);
                     break;
 
                 case InstructionStates.Credits:
@@ -746,7 +777,7 @@ namespace SpaceScribble
                     enemyManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, CreditsText);
+                    drawCenteredText(spriteBatch, CreditsText);
                     break;
 
                 case InstructionStates.KillBoss:
@@ -756,7 +787,7 @@ namespace SpaceScribble
                     bossManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, KillBossText);
+                    drawCenteredText(spriteBatch, KillBossText);
                     break;
 
                 case InstructionStates.BossBonus:
@@ -766,7 +797,7 @@ namespace SpaceScribble
                     bossManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, BossBonusText);
+                    drawCenteredText(spriteBatch, BossBonusText);
                     break;
 
                 case InstructionStates.GoodLuck:
@@ -776,38 +807,44 @@ namespace SpaceScribble
                     bossManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, GoodLuckText);
+                    drawCenteredText(spriteBatch, GoodLuckText);
                     break;
 
-                case InstructionStates.ReturnWithBackButton:
+                case InstructionStates.Finished:
                     powerUpManager.Draw(spriteBatch);
                     asteroidManager.Draw(spriteBatch);
                     enemyManager.Draw(spriteBatch);
                     bossManager.Draw(spriteBatch);
+                    playerManager.Draw(spriteBatch);
 
-                    drawRedCenteredText(spriteBatch, ReturnWithBackButtonText);
+                    if (isAutostarted)
+                        drawCenteredText(spriteBatch, ContinueWithBackButtonText);
+                    else
+                        drawCenteredText(spriteBatch, ReturnWithBackButtonText);
                     break;
             }
         }
 
-        private void drawRedCenteredText(SpriteBatch spriteBatch, string text)
+        private void drawCenteredText(SpriteBatch spriteBatch, string text)
         {
-            spriteBatch.DrawString(font,
+            spriteBatch.DrawStringBordered(font,
                                    text,
                                    new Vector2(screenBounds.Width / 2 - font.MeasureString(text).X / 2,
                                                screenBounds.Height / 2 - font.MeasureString(text).Y / 2),
-                                   Color.Black);
+                                   Color.Black,
+                                   Color.White);
         }
 
-        private void drawRedCenteredText(SpriteBatch spriteBatch, string[] texts)
+        private void drawCenteredText(SpriteBatch spriteBatch, string[] texts)
         {
             for (var i = 0; i < texts.Length; ++i)
             {
-                spriteBatch.DrawString(font,
+                spriteBatch.DrawStringBordered(font,
                                    texts[i],
                                    new Vector2(screenBounds.Width / 2 - font.MeasureString(texts[i]).X / 2,
                                                (screenBounds.Height / 2 - font.MeasureString(texts[i]).Y / 2) - 16 + (i * 32)),
-                                   Color.Black);
+                                   Color.Black,
+                                   Color.White);
             }
         }
 
@@ -824,14 +861,26 @@ namespace SpaceScribble
             this.progressTimer = 0.0f;
             this.state = InstructionStates.Welcome;
             this.powerUpsDropped = false;
+            this.isAutostarted = false;
+        }
+
+        public void InstructionsDone()
+        {
+            if (!hasDoneInstructions)
+            {
+                hasDoneInstructions = true;
+                isInvalidated = true;
+            }
         }
 
         public void SaveHasDoneInstructions()
         {
+            if (!isInvalidated)
+                return;
 
             using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication())
             {
-                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream("instructions2.txt", FileMode.Create, isf))
+                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(INSTRUCTION_FILE, FileMode.Create, isf))
                 {
                     using (StreamWriter sw = new StreamWriter(isfs))
                     {
@@ -848,10 +897,12 @@ namespace SpaceScribble
         {
             using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication())
             {
-                bool hasExisted = isf.FileExists(@"instructions2.txt");
+                bool hasExisted = isf.FileExists(INSTRUCTION_FILE);
 
-                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(@"instructions2.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite, isf))
+                using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream(INSTRUCTION_FILE, FileMode.OpenOrCreate, FileAccess.ReadWrite, isf))
                 {
+                    isInvalidated = false;
+
                     if (hasExisted)
                     {
                         using (StreamReader sr = new StreamReader(isfs))
@@ -871,8 +922,8 @@ namespace SpaceScribble
                 }
 
                 // Delete the old file
-                if (isf.FileExists(@"instructions.txt"))
-                    isf.DeleteFile(@"instructions.txt");
+                if (isf.FileExists(OLD_INSTRUCTION_FILE))
+                    isf.DeleteFile(OLD_INSTRUCTION_FILE);
             }
         }
 
@@ -885,6 +936,8 @@ namespace SpaceScribble
             this.progressTimer = Single.Parse(reader.ReadLine());
             hasDoneInstructions = Boolean.Parse(reader.ReadLine());
             this.powerUpsDropped = Boolean.Parse(reader.ReadLine());
+            this.isInvalidated = Boolean.Parse(reader.ReadLine());
+            this.isAutostarted = Boolean.Parse(reader.ReadLine());
         }
 
         public void Deactivated(StreamWriter writer)
@@ -892,21 +945,39 @@ namespace SpaceScribble
             writer.WriteLine(progressTimer);
             writer.WriteLine(hasDoneInstructions);
             writer.WriteLine(powerUpsDropped);
+            writer.WriteLine(isInvalidated);
+            writer.WriteLine(isAutostarted);
         }
 
         #endregion
 
         #region Properties
 
-        public static bool HasDoneInstructions
+        public bool HasDoneInstructions
         {
             get
             {
                 return hasDoneInstructions;
             }
+        }
+
+        public bool IsAutostarted
+        {
             set
             {
-                hasDoneInstructions = value;
+                this.isAutostarted = value;
+            }
+            get
+            {
+                return this.isAutostarted;
+            }
+        }
+
+        public bool EnougthInstructionsDone
+        {
+            get
+            {
+                return (progressTimer > 5.0f);
             }
         }
 

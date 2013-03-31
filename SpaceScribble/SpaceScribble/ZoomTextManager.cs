@@ -191,7 +191,7 @@ namespace SpaceScribble
         {
             // Texts
             int textsCount = Int32.Parse(reader.ReadLine());
-
+            zoomTexts.Clear();
             for (int i = 0; i < textsCount; ++i)
             {
                 ZoomText text = new ZoomText();
@@ -201,7 +201,7 @@ namespace SpaceScribble
 
             // Infos
             int infosCount = Int32.Parse(reader.ReadLine());
-
+            infoTexts.Clear();
             for (int i = 0; i < infosCount; ++i)
             {
                 ZoomText info = new ZoomText();
@@ -211,7 +211,7 @@ namespace SpaceScribble
 
             // Buy
             int buyCount = Int32.Parse(reader.ReadLine());
-
+            buyTexts.Clear();
             for (int i = 0; i < buyCount; ++i)
             {
                 ZoomText buy = new ZoomText();
@@ -221,7 +221,7 @@ namespace SpaceScribble
 
             // Credit
             int creditCount = Int32.Parse(reader.ReadLine());
-
+            creditTexts.Clear();
             for (int i = 0; i < creditCount; ++i)
             {
                 ZoomText credit = new ZoomText();

@@ -169,10 +169,11 @@ namespace SpaceScribble
 
         private void drawScore(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawInt64WithZeros(font,
+            spriteBatch.DrawInt64WithZerosBordered(font,
                                   score,
                                   scoreLocation,
                                   Color.Black * 0.8f,
+                                  Color.White * 0.8f,
                                   11);
         }
 
@@ -195,20 +196,22 @@ namespace SpaceScribble
                 src = SpecialShotsSonicSource;
             }
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                              SpecialShotsDestination,
                              src,
-                             Color.Black * 0.8f);
+                             Color.Black * 0.8f,
+                             Color.White * 0.8f);
 
             string remainingSpecialShots = specialShots.ToString();
 
-            spriteBatch.DrawString(fontSmall,
+            spriteBatch.DrawStringBordered(fontSmall,
                                    remainingSpecialShots,
                                    new Vector2(SpecialShotsDestination.X - 6 - (font.MeasureString(remainingSpecialShots).X),
                                                SpecialShotsDestination.Y - 5),
-                                   Color.Black * 0.8f);
+                                   Color.Black * 0.8f,
+                                   Color.White * 0.8f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)specialShotReloadLocation.X,
                         (int)specialShotReloadLocation.Y,
@@ -219,9 +222,10 @@ namespace SpaceScribble
                         (int)SmallBarOverlayStart.Y,
                         BarWidth,
                         BarHeight),
-                    Color.Black * 0.3f);
+                    Color.Black * 0.3f,
+                    Color.White * 0.3f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)specialShotReloadLocation.X,
                         (int)specialShotReloadLocation.Y,
@@ -232,7 +236,8 @@ namespace SpaceScribble
                         (int)SmallBarOverlayStart.Y,
                         (int)(BarWidth * (1.0f - specialShotReloadTime / specialShotReloadTimeMax)),
                         BarHeight),
-                    Color.Black * 0.75f);
+                    Color.Black * 0.75f,
+                    Color.White * 0.75f);
         }
 
         private void drawUpgrades(SpriteBatch spriteBatch)
@@ -278,12 +283,13 @@ namespace SpaceScribble
 
         private void drawHitPoints(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                              hitPointSymbolLocation,
                              hitPointSymbolSoruce,
-                             Color.Black * 0.8f);
+                             Color.Black * 0.8f,
+                             Color.White * 0.8f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)hitPointLocation.X,
                         (int)hitPointLocation.Y,
@@ -294,9 +300,10 @@ namespace SpaceScribble
                         (int)SmallBarOverlayStart.Y,
                         BarWidth,
                         BarHeight),
-                    Color.Black * 0.3f);
+                    Color.Black * 0.3f,
+                    Color.White * 0.3f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)hitPointLocation.X,
                         (int)hitPointLocation.Y,
@@ -307,17 +314,19 @@ namespace SpaceScribble
                         (int)SmallBarOverlayStart.Y,
                         (int)(BarWidth * hitPoints / maxHitPoints),
                         BarHeight),
-                    Color.Black * 0.75f);
+                    Color.Black * 0.75f,
+                    Color.White * 0.75f);
         }
 
         private void drawShieldPoints(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                              shieldPointSymbolLocation,
                              shieldPointSymbolSoruce,
-                             Color.Black * 0.8f);
+                             Color.Black * 0.8f,
+                             Color.White * 0.8f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)shieldPointLocation.X,
                         (int)shieldPointLocation.Y,
@@ -328,9 +337,10 @@ namespace SpaceScribble
                         (int)SmallBarOverlayStart.Y,
                         BarWidth,
                         BarHeight),
-                    Color.Black * 0.3f);
+                    Color.Black * 0.3f,
+                    Color.White * 0.3f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)shieldPointLocation.X,
                         (int)shieldPointLocation.Y,
@@ -341,7 +351,8 @@ namespace SpaceScribble
                         (int)SmallBarOverlayStart.Y,
                         (int)(BarWidth * shieldPoints / maxShieldPoints),
                         BarHeight),
-                    Color.Black * 0.75f);
+                    Color.Black * 0.75f,
+                    Color.White * 0.75f);
         }
 
         private void drawLevel(SpriteBatch spriteBatch)
@@ -358,18 +369,19 @@ namespace SpaceScribble
             }
 
 
-            spriteBatch.DrawString(font,
-                                   currentLevelText,
+            spriteBatch.DrawStringBordered(font,
+                                   currentLevelText.ToString(),
                                    new Vector2(screenBounds.Width / 2 - (font.MeasureString(currentLevelText).Y / 2) - 30,
                                                5),
-                                   Color.Black * 0.8f);
+                                   Color.Black * 0.8f,
+                                   Color.White * 0.8f);
         }
 
         private void drawBossHitPoints(SpriteBatch spriteBatch, float bossHitPoints, float bossMaxHitPoints)
         {
             float factor = BossBarWidth / bossMaxHitPoints;
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)bossHitPointLocation.X,
                         (int)bossHitPointLocation.Y,
@@ -380,9 +392,10 @@ namespace SpaceScribble
                         (int)BigBarOverlayStart.Y,
                         BossBarWidth,
                         BossBarHeight),
-                    Color.Black * 0.3f);
+                    Color.Black * 0.3f,
+                    Color.White * 0.3f);
 
-            spriteBatch.Draw(texture,
+            spriteBatch.DrawBordered(texture,
                     new Rectangle(
                         (int)bossHitPointLocation.X,
                         (int)bossHitPointLocation.Y,
@@ -393,7 +406,8 @@ namespace SpaceScribble
                         (int)BigBarOverlayStart.Y,
                         (int)(factor * bossHitPoints),
                         BossBarHeight),
-                    Color.Black * 0.75f);
+                    Color.Black * 0.75f,
+                    Color.White * 0.75f);
         }
 
         #endregion

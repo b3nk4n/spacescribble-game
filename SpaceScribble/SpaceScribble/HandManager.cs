@@ -13,7 +13,7 @@ namespace SpaceScribble
         #region Members
 
         private const float STAGGER_X = 6.0f;
-        private const float STAGGER_Y = 10.0f;
+        private const float STAGGER_Y = 8.0f;
 
         private Texture2D texture;
 
@@ -27,7 +27,7 @@ namespace SpaceScribble
 
         private Vector2 leftHandStagger;
 
-        private readonly Rectangle rightHandSource = new Rectangle(150, 0, 200, 800);
+        private readonly Rectangle rightHandSource = new Rectangle(150, 0, 350, 800);
 
         private readonly Vector2 rightHandFrom = new Vector2(490, 160);
 
@@ -38,6 +38,9 @@ namespace SpaceScribble
         private Vector2 rightHandStagger;
 
         private bool handShown;
+
+        private readonly Vector2 ScripplePosition = new Vector2(208, 410);
+        private bool scribbled = true;
 
         #endregion
 
@@ -59,16 +62,26 @@ namespace SpaceScribble
         {
             leftHandPosition = leftHandFrom;
             rightHandPosition = rightHandFrom;
+            scribbled = true;
         }
 
         public void ShowHands()
         {
             handShown = true;
+            scribbled = true;
         }
 
         public void HideHands()
         {
             handShown = false;
+            scribbled = true;
+        }
+
+        public void HideHandsAndScribble()
+        {
+            handShown = false;
+            scribbled = false;
+            SoundManager.PlayWritingSound();
         }
 
         public void Update(GameTime gameTime)
@@ -85,13 +98,34 @@ namespace SpaceScribble
             {
                 velocityLeft = -(leftHandTo - (leftHandPosition - leftHandFrom)) * 0.015f;
                 velocityRight = -(rightHandTo - (rightHandPosition - rightHandFrom)) * 0.01f;
+
+                if (!scribbled)
+                {
+                    velocityRight = (rightHandPosition - ScripplePosition) * 0.166f;
+
+                    if ((rightHandPosition - ScripplePosition).Length() < 10)
+                    {
+                        EffectManager.AddPlayerSmoke(new Vector2(240, 645), Vector2.Zero);
+                    }
+
+                    if ((rightHandPosition - ScripplePosition).Length() < 2)
+                    {
+                        scribbled = true;
+                    }
+                }
+
+                if (scribbled)
+                {
+                    velocityRight = -(rightHandTo - (rightHandPosition - rightHandFrom)) * 0.01f;
+                }
+
             }
 
-            
+
 
             leftHandPosition -= velocityLeft;
             rightHandPosition -= velocityRight;
-            
+
             // Stagger
             leftHandStagger = new Vector2(
                 (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds) * STAGGER_X,
@@ -143,6 +177,8 @@ namespace SpaceScribble
 
             this.rightHandStagger = new Vector2(Single.Parse(reader.ReadLine()),
                                                Single.Parse(reader.ReadLine()));
+
+            this.scribbled = Boolean.Parse(reader.ReadLine());
         }
 
 
@@ -161,6 +197,8 @@ namespace SpaceScribble
 
             writer.WriteLine(rightHandStagger.X);
             writer.WriteLine(rightHandStagger.Y);
+
+            writer.WriteLine(scribbled);
         }
 
         #endregion

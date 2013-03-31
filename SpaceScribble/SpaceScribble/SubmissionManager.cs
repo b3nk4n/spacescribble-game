@@ -14,10 +14,10 @@ namespace SpaceScribble
 
         LeaderboardManager leaderboardManager;
 
-        private readonly Rectangle submitSource = new Rectangle(0, 1120, 
-                                                                240, 80);
-        private readonly Rectangle submitDestination = new Rectangle(5, 710,
-                                                                     230, 77);
+        private readonly Rectangle submitSource = new Rectangle(0, 1440,
+                                                                480, 100);
+        private readonly Rectangle submitDestination = new Rectangle(5, 610,
+                                                                     470, 97);
 
         private readonly Rectangle cancelSource = new Rectangle(0, 800,
                                                                 240, 80);
@@ -34,7 +34,8 @@ namespace SpaceScribble
         public const int MaxScores = 10;
 
         public static Texture2D Texture;
-        public static SpriteFont Font;
+        public static SpriteFont FontSmall;
+        public static SpriteFont FontBig;
         private readonly Rectangle TitleSource = new Rectangle(0, 300,
                                                                480, 100);
         private readonly Vector2 TitlePosition = new Vector2(0.0f, 100.0f);
@@ -49,10 +50,11 @@ namespace SpaceScribble
         private string name = string.Empty;
         private long score;
         private int level;
-        private long earnedCredits;
+        private long credits;
 
         private bool cancelClicked = false;
         private bool retryClicked = false;
+        private bool changeNameClicked = false;
 
 
         private readonly string[] TEXT_SUBMIT = {"You have now the ability to share your",
@@ -69,9 +71,16 @@ namespace SpaceScribble
         private const string SubmitAction = "Submit";
         private const string CancelAction = "Cancel";
         private const string RetryAction = "Retry";
+        private const string ChangeNameAction = "ChangeName";
 
-        private const int TextPositionX = 140;
-        private const int ValuePositionX = 260;
+        private readonly Rectangle formLeftSource = new Rectangle(480, 1350,
+                                                                  20, 60);
+        private readonly Rectangle formContentSource = new Rectangle(500, 1350,
+                                                                     160, 60);
+        private readonly Rectangle formRightSource = new Rectangle(670, 1350,
+                                                                   90, 60);
+        private readonly Rectangle formClickDestination = new Rectangle(60, 352,
+                                                                   360, 60);
 
         #endregion
 
@@ -97,6 +106,9 @@ namespace SpaceScribble
             GameInput.AddTouchGestureInput(RetryAction,
                                            GestureType.Tap,
                                            retryDestination);
+            GameInput.AddTouchGestureInput(ChangeNameAction,
+                                           GestureType.Tap,
+                                           formClickDestination);
         }
 
         public static SubmissionManager GetInstance()
@@ -116,26 +128,27 @@ namespace SpaceScribble
                 // Submit
                 if (GameInput.IsPressed(SubmitAction))
                 {
-                    SoundManager.PlaySelectSound();
+                    SoundManager.PlayPaperSound();
                     leaderboardManager.Submit(LeaderboardManager.SUBMIT,
                                               name,
                                               score,
                                               level);
                     submitState = SubmitState.Submitted;
                 }
-            }
-            else
-            {
-                // Retry
-                if (GameInput.IsPressed(RetryAction))
+
+                if (GameInput.IsPressed(ChangeNameAction))
                 {
-                    if (submitState == SubmitState.Submitted)
-                    {
-                        retryClicked = true;
-                    }
+                    changeNameClicked = true;
                 }
             }
-            
+
+            // Retry
+            if (GameInput.IsPressed(RetryAction))
+            {
+                retryClicked = true;
+            }
+
+            // Cancel
             if (GameInput.IsPressed(CancelAction))
             {
                 leaderboardManager.StatusText = LeaderboardManager.TEXT_NONE;
@@ -143,12 +156,12 @@ namespace SpaceScribble
             }
         }
 
-        public void SetUp(string name, long score, int level, long earnedCredits)
+        public void SetUp(string name, long score, int level, long credits)
         {
             this.name = name;
             this.score = score;
             this.level = level;
-            this.earnedCredits = earnedCredits;
+            this.credits = credits;
         }
 
         public void Update(GameTime gameTime)
@@ -169,6 +182,11 @@ namespace SpaceScribble
                                  cancelSource,
                                  Color.White * opacity);
 
+            spriteBatch.Draw(Texture,
+                                 retryDestination,
+                                 retrySource,
+                                 Color.White * opacity);
+
             if (submitState == SubmitState.Submit)
             {
                 spriteBatch.Draw(Texture,
@@ -178,82 +196,118 @@ namespace SpaceScribble
             }
             else if (submitState == SubmitState.Submitted)
             {
-                spriteBatch.Draw(Texture,
-                                 retryDestination,
-                                 retrySource,
-                                 Color.White * opacity);
-
-                spriteBatch.DrawString(Font,
+                spriteBatch.DrawString(FontSmall,
                                    leaderboardManager.StatusText,
-                                   new Vector2(240 - Font.MeasureString(leaderboardManager.StatusText).X / 2,
-                                               635),
+                                   new Vector2(240 - FontSmall.MeasureString(leaderboardManager.StatusText).X / 2,
+                                               645),
                                    Color.Black * opacity);
 
             }
 
             for (int i = 0; i < TEXT_SUBMIT.Length; i++)
             {
-                spriteBatch.DrawString(Font,
+                spriteBatch.DrawString(FontBig,
                                    TEXT_SUBMIT[i],
-                                   new Vector2(240 - Font.MeasureString(TEXT_SUBMIT[i]).X / 2,
-                                               250 + (i * 35)),
+                                   new Vector2(240 - FontBig.MeasureString(TEXT_SUBMIT[i]).X / 2,
+                                               230 + (i * 35)),
                                    Color.Black * opacity);
             }
 
             // Title:
-            spriteBatch.DrawString(Font,
+            spriteBatch.DrawString(FontSmall,
                                    TEXT_NAME,
-                                   new Vector2(TextPositionX,
-                                               400),
+                                   new Vector2(240 - FontSmall.MeasureString(TEXT_NAME).X / 2,
+                                               330),
                                    Color.Black * opacity);
 
-            spriteBatch.DrawString(Font,
+            spriteBatch.DrawString(FontSmall,
                                    TEXT_SCORE,
-                                   new Vector2(TextPositionX,
-                                               450),
+                                   new Vector2(240 - FontSmall.MeasureString(TEXT_SCORE).X / 2,
+                                               430),
                                    Color.Black * opacity);
 
-            spriteBatch.DrawString(Font,
+            spriteBatch.DrawString(FontSmall,
                                    TEXT_LEVEL,
-                                   new Vector2(TextPositionX,
-                                               500),
+                                   new Vector2(160,
+                                               510),
                                    Color.Black * opacity);
 
-            spriteBatch.DrawString(Font,
+            spriteBatch.DrawString(FontSmall,
                                    TEXT_CREDITS,
-                                   new Vector2(TextPositionX,
+                                   new Vector2(160,
                                                550),
                                    Color.Black * opacity);
 
             // Content:
-            spriteBatch.DrawString(Font,
+
+            // Form:
+            int nameWidth = Math.Max((int)FontBig.MeasureString(name).X, 100);
+
+            Color formColor;
+
+            if (submitState == SubmitState.Submit)
+            {
+                formColor = Color.White;
+            }
+            else
+            {
+                formColor = Color.White * 0.5f;
+            }
+
+            spriteBatch.Draw(
+                Texture,
+                new Rectangle(240 - nameWidth / 2 - formLeftSource.Width - 10, formClickDestination.Y,
+                              formLeftSource.Width,
+                              formLeftSource.Height),
+                formLeftSource,
+                formColor);
+
+            spriteBatch.Draw(
+                Texture,
+                new Rectangle(240 - nameWidth / 2 - 10, formClickDestination.Y,
+                              nameWidth,
+                              formContentSource.Height),
+                formContentSource,
+                formColor);
+
+            spriteBatch.Draw(
+                Texture,
+                new Rectangle(240 + nameWidth / 2 - 10, formClickDestination.Y,
+                              formRightSource.Width,
+                              formRightSource.Height),
+                formRightSource,
+                formColor);
+
+
+            spriteBatch.DrawString(FontBig,
                                    name,
-                                   new Vector2(ValuePositionX,
-                                               400),
+                                   new Vector2(240 - nameWidth / 2 - 10,
+                                               370),
                                    Color.Black * opacity);
 
-            spriteBatch.DrawInt64(Font,
-                                  score,
-                                  new Vector2(ValuePositionX,
-                                              450),
+            String scoreString = score.ToString();
+
+            spriteBatch.DrawString(FontBig,
+                                  scoreString,
+                                  new Vector2(240 - FontBig.MeasureString(scoreString).X / 2,
+                                              460),
                                   Color.Black * opacity);
 
-            spriteBatch.DrawInt64(Font,
-                                  level,
-                                  new Vector2(ValuePositionX,
-                                              500),
+            String levelString = level.ToString();
+
+            spriteBatch.DrawString(FontBig,
+                                  levelString,
+                                  new Vector2(280,
+                                              510),
                                   Color.Black * opacity);
 
-            Vector2 pos = spriteBatch.DrawInt64(Font,
-                                  earnedCredits,
-                                  new Vector2(ValuePositionX,
+            String creditsString = credits.ToString();
+
+            spriteBatch.DrawString(FontBig,
+                                  creditsString,
+                                  new Vector2(280,
                                               550),
                                   Color.Black * opacity);
-
-            spriteBatch.DrawString(Font,
-                                   " $",
-                                   pos,
-                                   Color.Black);
 
             spriteBatch.Draw(Texture,
                              TitlePosition,
@@ -272,7 +326,7 @@ namespace SpaceScribble
             this.name = reader.ReadLine();
             this.score = Int64.Parse(reader.ReadLine());
             this.level = Int32.Parse(reader.ReadLine());
-            this.earnedCredits = Int64.Parse(reader.ReadLine());
+            this.credits = Int64.Parse(reader.ReadLine());
             this.submitState = (SubmitState)Enum.Parse(submitState.GetType(), reader.ReadLine(), false);
         }
 
@@ -283,7 +337,7 @@ namespace SpaceScribble
             writer.WriteLine(name);
             writer.WriteLine(score);
             writer.WriteLine(level);
-            writer.WriteLine(earnedCredits);
+            writer.WriteLine(credits);
             writer.WriteLine(submitState);
         }
 
@@ -324,6 +378,26 @@ namespace SpaceScribble
             get
             {
                 return this.retryClicked;
+            }
+        }
+
+        public bool ChangeNameClicked
+        {
+            set
+            {
+                this.changeNameClicked = value;
+            }
+            get
+            {
+                return this.changeNameClicked;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return this.name;
             }
         }
 
