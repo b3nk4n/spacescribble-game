@@ -455,6 +455,7 @@ namespace SpaceScribble
                 asteroid.Location = new Vector2(-500, -500);
             }
 
+            isActive = true;
             isShowerActive = false;
         }
 

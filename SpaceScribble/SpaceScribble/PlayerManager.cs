@@ -77,6 +77,12 @@ namespace SpaceScribble
                                                                "Up7",
                                                                "Up8",
                                                                "Up9"};
+        private const string ActionMove = "MoveWithFinger";
+        private const string ActionUpperMove = "UpperMove";
+        private readonly Rectangle UpperMoveRectSecondTouch = new Rectangle(0, 0, 480, 750);
+
+        private Vector2 targetPlayerPosition;
+        private readonly Vector2 PLAYER_POSITION_OFFSET = new Vector2(-25, -100);
 
         // Player ship type/texture
         public enum PlayerType { GreenHornet, Medium, Hard, Tank, Speeder, Easy };
@@ -124,6 +130,12 @@ namespace SpaceScribble
 
         // Scales opacity and speed at startup (0 -> 1)
         private float startUpScale;
+
+        /**
+         * Defines whether sensor or touch input is active. 
+         * This setting is not stored in isolated storage!!!
+         */
+        public static bool IsSensorInput = false;
 
         #endregion
 
@@ -191,10 +203,6 @@ namespace SpaceScribble
                                        rightSideScreen,
                                        false);
 
-            gameInput.AddTouchGestureInput(ActionUpper,
-                                           GestureType.DoubleTap,
-                                           upperScreen);
-
             // update icons
             for (int i = 0; i < PlayerManager.UPGRADES_COUNT; ++i)
             {
@@ -206,10 +214,17 @@ namespace SpaceScribble
                     Hud.UPGRADE_LARGE_DIMENSION,
                     Hud.UPGRADE_LARGE_DIMENSION);
 
-                gameInput.AddTouchTapInput(ActionUpgradeTouch[i],
+                /*gameInput.AddTouchTapInput(ActionUpgradeTouch[i],
                                        dest,
-                                       false);
+                                       false);*/
+                gameInput.AddTouchGestureInput(ActionUpgradeTouch[i],
+                    GestureType.Tap,
+                    dest);
             }
+
+            gameInput.AddTouchTapInput(ActionMove,
+                new Rectangle(0, 50, 480, 725),
+                false);
         }
 
         public void Reset()
@@ -234,6 +249,9 @@ namespace SpaceScribble
             this.autofireStartTimer = 0.0f;
 
             this.startUpScale = 0;
+
+            targetPlayerPosition = Vector2.Zero;
+            this.playerSprite.Velocity = Vector2.Zero;
         }
 
         public void resetUpgradeLevels()
@@ -1012,6 +1030,120 @@ namespace SpaceScribble
 
         private void HandleTouchInput(TouchCollection touches)
         {
+            if (IsSensorInput)
+                handleSensorControl(touches);
+            else
+                handleTouchOnlyInput(touches);
+
+            // Upgrade via direct touch
+            handleUpgradeTouched();
+        }
+
+        private int lastSpecialId = -1;
+
+        private void handleTouchOnlyInput(TouchCollection touches)
+        {
+            bool fireLaser = false;
+            bool fireSpecial = false;
+
+            if (autofireStartTimer > autofireStartMin)
+                fireLaser = true;
+
+            TouchLocation specialTouch;
+            if (touches.FindById(lastSpecialId, out specialTouch))
+            {
+                fireSpecial = true;
+            }
+            else
+            {
+                if (touches.Count == 2)
+                {
+                    if (UpperMoveRectSecondTouch.Contains(new Point((int)touches[1].Position.X, (int)touches[1].Position.Y)))
+                    {
+                        // store touch id
+                        lastSpecialId = touches[1].Id;
+
+                        fireSpecial = true;
+                    }
+                }
+            }
+
+            if (fireLaser || fireSpecial)
+                PlayerShotManager.ShotSpeed = initShotSpeed + laserSpeedUpgrades * SHOTSPEED_PER_UPGRADE;
+
+            if (fireLaser)
+            {
+                fireShot();
+            }
+
+            if (fireSpecial)
+            {
+                fireSpecialShot();
+            }
+
+            // set target position in input detected
+            if (gameInput.IsPressed(ActionMove))
+            {
+                bool move = false;
+                Vector2 touch = Vector2.Zero;
+                // store touch id
+                if (touches.Count == 1)
+                {
+                    if (touches[0].Id != lastSpecialId)
+                    {
+                        move = true;
+                        touch = touches[0].Position;
+                    }
+                }
+                else if (touches.Count == 2)
+                {
+                    if (touches[0].Id != lastSpecialId)
+                    {
+                        move = true;
+                        touch = touches[0].Position;
+                    }
+                    else
+                    {
+                        move = true;
+                        touch = touches[1].Position;
+                    }
+                }
+
+                if (move)
+                {
+                    targetPlayerPosition = touch + PLAYER_POSITION_OFFSET;
+                }
+            }
+
+            // move player if target is specified
+            if (targetPlayerPosition != Vector2.Zero)
+            {
+                Vector2 playerDirection = targetPlayerPosition - playerSprite.Location;
+                // if target reached
+                if (playerDirection.Length() < 2)
+                {
+                    targetPlayerPosition = Vector2.Zero;
+                    playerSprite.Velocity = Vector2.Zero;
+                }
+                else
+                {
+                    float factor = 2.0f;
+                    float distance = playerDirection.Length();
+
+                    if (distance < 50)
+                        factor = Math.Max(0.5f, distance / 25);
+
+                    playerDirection.Normalize();
+
+
+                    playerDirection *= factor;
+                    playerSprite.Velocity = playerDirection;
+                }
+            }
+        }
+
+        private void handleSensorControl(TouchCollection touches)
+        {
             bool fireLaser = false;
             bool fireSpecial = false;
             bool upgrade = false;
@@ -1103,9 +1235,6 @@ namespace SpaceScribble
             {
                 playerSprite.Velocity = Vector2.Zero;
             }
-
-            // Upgrade via direct touch
-            handleUpgradeTouched();
         }
 
         private void handleUpgradeTouched()
@@ -1429,6 +1558,8 @@ namespace SpaceScribble
             this.autofireStartTimer = Single.Parse(reader.ReadLine());
 
             this.startUpScale = Single.Parse(reader.ReadLine());
+
+            IsSensorInput = Boolean.Parse(reader.ReadLine());
         }
 
         public void Deactivated(StreamWriter writer)
@@ -1469,6 +1600,8 @@ namespace SpaceScribble
             writer.WriteLine(autofireStartTimer);
 
             writer.WriteLine(startUpScale);
+
+            writer.WriteLine(IsSensorInput);
         }
 
         public static int GetUpdateLevelOfIndex(int index)

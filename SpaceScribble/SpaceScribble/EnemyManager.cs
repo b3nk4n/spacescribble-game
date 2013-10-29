@@ -814,7 +814,7 @@ namespace SpaceScribble
                 Vector2 fireLocation = enemy.EnemySprite.Location;
                 fireLocation += enemy.GunOffset;
 
-                Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (2.0f + (float)rand.NextDouble() * 8.0f)) - fireLocation);
+                Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (4.0f + (float)rand.NextDouble() * 8.0f)) - fireLocation);
 
                 shotDirection.Normalize();
 
@@ -1004,7 +1004,7 @@ namespace SpaceScribble
                     {
                         Vector2 fireLocation = harakiri.EnemySprite.Center;
 
-                        Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (1.75f + (float)rand.NextDouble() * 3.25f)) - fireLocation);
+                        Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (3.5f + (float)rand.NextDouble() * 3.5f)) - fireLocation);
 
                         shotDirection.Normalize();
 

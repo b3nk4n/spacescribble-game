@@ -16,7 +16,7 @@ namespace SpaceScribble
         private float speed;
 
         private const int EnemyRadiusEasy = 14;
-        private const int EnemyRadiusMedium = 20; // TODO: adjust radius
+        private const int EnemyRadiusMedium = 19;
         private const int EnemyRadiusHard = 18;
 
         private const float InitialHitPoints = 200.0f;

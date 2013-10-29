@@ -30,34 +30,37 @@ namespace SpaceScribble
 
         private const string MUSIC_TITLE = "Music: ";
         private SoundValues musicValue = SoundValues.Med;
-        private readonly int musicPositionY = 280;
-        private readonly Rectangle musicDestination = new Rectangle(90, 265,
+        private readonly int musicPositionY = 260;
+        private readonly Rectangle musicDestination = new Rectangle(90, 245,
                                                                     300, 50);
 
         private const string SFX_TITLE = "SFX: ";
         private SoundValues sfxValue = SoundValues.High;
-        private readonly int sfxPositionY = 360;
-        private readonly Rectangle sfxDestination = new Rectangle(90, 345,
+        private readonly int sfxPositionY = 340;
+        private readonly Rectangle sfxDestination = new Rectangle(90, 325,
                                                                   300, 50);
 
         private const string VIBRATION_TITLE = "Vibration: ";
         private ToggleValues vibrationValue = ToggleValues.On;
-        private readonly int vibrationPositionY = 440;
-        private readonly Rectangle vibrationDestination = new Rectangle(90, 425,
+        private readonly int vibrationPositionY = 420;
+        private readonly Rectangle vibrationDestination = new Rectangle(90, 405,
                                                                         300, 50);
 
         private NeutralPositionValues neutralPositionValue = NeutralPositionValues.Angle20;
 
+        private const string SENSOR_SETTINGS_TITLE = "Sensor control settings: ";
+        private readonly int sensorTitlePositionY = 525;
+
         private const string AUTOFIRE_TITLE = "Autofire: ";
         private ToggleValues autofireValue = ToggleValues.On;
-        private readonly int autoforePositionY = 520;
-        private readonly Rectangle autofireDestination = new Rectangle(90, 505,
+        private readonly int autoforePositionY = 600;
+        private readonly Rectangle autofireDestination = new Rectangle(90, 585,
                                                                        300, 50);
 
         private const string CONTROL_POSITION_TITLE = "Control Position: ";
         private ControlPositionValues controlPositionValue = ControlPositionValues.Right;
-        private readonly int controlPositionY = 600;
-        private readonly Rectangle controlPositionDestination = new Rectangle(90, 585,
+        private readonly int controlPositionY = 680;
+        private readonly Rectangle controlPositionDestination = new Rectangle(90, 665,
                                                                               300, 50);
 
         private static Rectangle screenBounds;
@@ -70,12 +73,12 @@ namespace SpaceScribble
         private bool isActive = false;
 
         public static GameInput GameInput;
-        private const string MusicAction = "Music";
-        private const string SfxAction = "SFX";
-        private const string VibrationAction = "Vibration";
-        private const string NeutralPositionAction = "NeutralPos";
-        private const string ControlPositionAction = "ControlPos";
-        private const string AutofireAction = "Autofire";
+        private const string MusicAction = "MusicSetting";
+        private const string SfxAction = "SFXSetting";
+        private const string VibrationAction = "VibrationSetting";
+        private const string NeutralPositionAction = "NeutralPosSetting";
+        private const string ControlPositionAction = "ControlPosSetting";
+        private const string AutofireAction = "AutofireSetting";
 
         private const string ON = "ON";
         private const string OFF = "OFF";
@@ -162,6 +165,14 @@ namespace SpaceScribble
             drawMusic(spriteBatch);
             drawSfx(spriteBatch);
             drawVibration(spriteBatch);
+
+            // sensor settings title:
+            spriteBatch.DrawString(font,
+                                   SENSOR_SETTINGS_TITLE,
+                                   new Vector2((240 - font.MeasureString(SENSOR_SETTINGS_TITLE).X / 2),
+                                               sensorTitlePositionY),
+                                   Color.Black * opacity);
+
             drawControlPosition(spriteBatch);
             drawAutofire(spriteBatch);
         }
@@ -278,6 +289,9 @@ namespace SpaceScribble
 
         private void toggleControlPosition()
         {
+            if (autofireValue == ToggleValues.On)
+                return;
+
             switch (controlPositionValue)
             {
                 case ControlPositionValues.Left:

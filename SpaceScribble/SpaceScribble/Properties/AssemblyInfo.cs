@@ -10,7 +10,7 @@ using System.Resources;
 [assembly: AssemblyProduct("SpaceScribble")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Resources;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.4.0.0")]
+[assembly: AssemblyVersion("1.7.0.0")]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]

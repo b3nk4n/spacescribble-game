@@ -49,10 +49,10 @@ namespace SpaceScribble
 
         private const float WelcomeLimit = 2.0f;
         private const float MovementLimit = 5.0f;
-        private const float PrimaryShotLimit = 9.0f;
-        private const float SpecielShotLimit = 13.0f;
-        private const float ChangeControlsLimit = 17.0f;
-        private const float AutofireLimit = 21.0f;
+        private const float PrimaryShotLimit = 11.0f;
+        private const float SpecielShotLimit = 15.0f;
+        private const float ChangeControlsLimit = 19.0f;
+        private const float AutofireLimit = 24.0f;
         private const float UpgradeCollectLimit = 27.0f;
         private const float UpgradeActivateLimit = 33.0f;
         private const float UpgradeSortimentLimit = 36.0f;
@@ -113,17 +113,18 @@ namespace SpaceScribble
 
         private readonly string WelcomeText = "Welcome to SpaceScribble!";
         private readonly string MovementText = "Move the spaceship by tilting your phone";
+        private readonly string MovementTouchText = "Move the spaceship by touching the screen";
         private readonly string PrimaryShotText = "Press here to fire your laser gun";
         private readonly string SpecialShotText = "And here to fire your special weapon!";
         private readonly string SpecialShotAutofireText = "Press here to fire your special weapon!";
+        private readonly string[] SpecialShotTouchText = {"Touch the screen with a SECOND finger",
+                                                          "to fire your special weapon!"};
         private readonly string ChangeControlsText = "You can swap controls...";
         private readonly string AutofireDisableText = "Or disable autofire in settings menu!";
         private readonly string AutofireEnableText = "Or enable autofire in settings menu!";
         private readonly string UpgradeCollectText = "Collect upgrade items!";
-        private readonly string[] UpgradeActivateText = {"DOUBLE TAP here", 
-                                                         "to activate your desired upgrade",
-                                                         "or",
-                                                         "TAP the highlighted upgrade below!"};
+        private readonly string[] UpgradeActivateText = {"TAP the highlighted upgrade icon below", 
+                                                         "to activate your desired upgrade"};
         private readonly string UpgradeSortimentText = "There a several power ups...";
         private readonly string Upgrade1Text = "Agility";
         private readonly string Upgrade2Text = "Laser accuracy";
@@ -221,10 +222,10 @@ namespace SpaceScribble
             }
             else if (progressTimer < PrimaryShotLimit)
             {
-                if (settings.GetAutofireValue())
+                if (settings.GetAutofireValue() || !PlayerManager.IsSensorInput)
                 {
                     this.state = InstructionStates.SpecialShot;
-                    progressTimer += 4.0f;
+                    progressTimer = PrimaryShotLimit;
                 }
                 else
                 {
@@ -237,7 +238,15 @@ namespace SpaceScribble
             }
             else if (progressTimer < ChangeControlsLimit)
             {
-                this.state = InstructionStates.ChangeControls;
+                if (!PlayerManager.IsSensorInput)
+                {
+                    this.state = InstructionStates.UpgradeCollect;
+                    progressTimer = AutofireLimit;
+                }
+                else
+                {
+                    this.state = InstructionStates.ChangeControls;
+                }
             }
             else if (progressTimer < AutofireLimit)
             {
@@ -436,7 +445,10 @@ namespace SpaceScribble
                 case InstructionStates.Movement:
                     playerManager.Draw(spriteBatch);
 
-                    drawCenteredText(spriteBatch, MovementText);
+                    if (PlayerManager.IsSensorInput)
+                        drawCenteredText(spriteBatch, MovementText);
+                    else
+                        drawCenteredText(spriteBatch, MovementTouchText);
                     break;
 
                 case InstructionStates.PrimaryShot:
@@ -461,41 +473,51 @@ namespace SpaceScribble
                 break;
 
                 case InstructionStates.SpecialShot:
-                    if (settings.GetAutofireValue())
+                    if (PlayerManager.IsSensorInput)
                     {
-                        playerManager.Draw(spriteBatch);
+                        if (settings.GetAutofireValue())
+                        {
+                            playerManager.Draw(spriteBatch);
 
-                        spriteBatch.Draw(texture,
-                                         bottomDestination,
-                                         areaBigSource,
-                                         areaTint * 0.6f,
-                                         0.0f,
-                                         Vector2.Zero,
-                                         SpriteEffects.FlipHorizontally,
-                                         0.0f);
-                        drawCenteredText(spriteBatch, SpecialShotAutofireText);
+                            spriteBatch.Draw(texture,
+                                             bottomDestination,
+                                             areaBigSource,
+                                             areaTint * 0.6f,
+                                             0.0f,
+                                             Vector2.Zero,
+                                             SpriteEffects.FlipHorizontally,
+                                             0.0f);
+                            drawCenteredText(spriteBatch, SpecialShotAutofireText);
+                        }
+                        else
+                        {
+                            Rectangle destSpecial;
+
+                            if (settings.ControlPosition == SettingsManager.ControlPositionValues.Right)
+                                destSpecial = leftShotDestination;
+                            else
+                                destSpecial = rightShotDestination;
+
+                            playerManager.Draw(spriteBatch);
+
+                            spriteBatch.Draw(texture,
+                                             destSpecial,
+                                             areaSmallSource,
+                                             areaTint * 0.6f,
+                                             0.0f,
+                                             Vector2.Zero,
+                                             SpriteEffects.FlipHorizontally,
+                                             0.0f);
+                            drawCenteredText(spriteBatch, SpecialShotText);
+                        }
                     }
                     else
                     {
-                        Rectangle destSpecial;
-
-                        if (settings.ControlPosition == SettingsManager.ControlPositionValues.Right)
-                            destSpecial = leftShotDestination;
-                        else
-                            destSpecial = rightShotDestination;
-
                         playerManager.Draw(spriteBatch);
 
-                        spriteBatch.Draw(texture,
-                                         destSpecial,
-                                         areaSmallSource,
-                                         areaTint * 0.6f,
-                                         0.0f,
-                                         Vector2.Zero,
-                                         SpriteEffects.FlipHorizontally,
-                                         0.0f);
-                        drawCenteredText(spriteBatch, SpecialShotText);
+                        drawCenteredText(spriteBatch, SpecialShotTouchText);
                     }
+
                     break;
 
                 case InstructionStates.ChangeControls:
@@ -522,15 +544,6 @@ namespace SpaceScribble
                 case InstructionStates.UpgradeActivate:
                     powerUpManager.Draw(spriteBatch);
                     playerManager.Draw(spriteBatch);
-
-                    spriteBatch.Draw(texture,
-                                     topDestination,
-                                     areaBigSource,
-                                     areaTint * 0.6f,
-                                     0.0f,
-                                     Vector2.Zero,
-                                     SpriteEffects.FlipHorizontally,
-                                     0.0f);
 
                     drawCenteredText(spriteBatch, UpgradeActivateText);
                     break;

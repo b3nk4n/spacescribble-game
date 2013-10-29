@@ -475,7 +475,7 @@ namespace SpaceScribble
 
                         Vector2 fireLocation = Bosses[x].BossSprite.Center;
 
-                        Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (1.75f + (float)rand.NextDouble() * 3.25f)) - fireLocation);
+                        Vector2 shotDirection = ((playerManager.playerSprite.Center + playerManager.playerSprite.Velocity / (3.5f + (float)rand.NextDouble() * 4.5f)) - fireLocation);
 
                         shotDirection.Normalize();
 

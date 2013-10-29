@@ -11,6 +11,7 @@ using System.IO;
 using SpaceScribble.Inputs;
 using Microsoft.Advertising.Mobile.Xna;
 using Microsoft.Advertising;
+using AdDuplex.Xna;
 
 namespace SpaceScribble
 {
@@ -25,8 +26,11 @@ namespace SpaceScribble
         /// <summary>
         /// Advertising stuff
         /// </summary>
-        static AdGameComponent adGameComponent;
-        static DrawableAd bannerAd;
+        private AdGameComponent adGameComponent;
+        private DrawableAd bannerAd;
+        private AdManager dpManager;
+        private bool isAdDuplexActive = false;
+
 
         private const string HighscoreText = "Personal Highscore!";
         private const string GameOverText = "GAME OVER!";
@@ -355,16 +359,26 @@ namespace SpaceScribble
             handManager = new HandManager(handSheet);
 
             setupInputs();
+
+            // ad duplex
+            dpManager = new AdManager(this, "62579");
+            dpManager.LoadContent();
         }
 
         void bannerAd_ErrorOccurred(object sender, AdErrorEventArgs e)
         {
             bannerLoaded = false;
+
+            // If loading of banner is failed, load an ad duplex banner.
+            isAdDuplexActive = true;
         }
 
         void bannerAd_AdRefreshed(object sender, EventArgs e)
         {
             bannerLoaded = true;
+
+            // If loading of banner is failed, load an ad duplex banner.
+            isAdDuplexActive = false;
         }
 
         private void setupInputs()
@@ -591,7 +605,7 @@ namespace SpaceScribble
                     }
                 }
             }
-            catch (FormatException)
+            catch (Exception)
             {
                 // catch end restore in case of incompatible active/deactivate dat-files
                 this.resetGame();
@@ -672,6 +686,7 @@ namespace SpaceScribble
                             break;
 
                         case MainMenuManager.MenuItems.Highscores:
+                            leaderboardManager.Receive();
                             gameState = GameStates.Highscores;
                             break;
 
@@ -1146,6 +1161,7 @@ namespace SpaceScribble
                         if (playerManager.PlayerScore > 0)
                         {
                             gameState = GameStates.Submittion;
+                            highscoreManager.IncreaseTotalCredits(playerManager.Credits);
                             submissionManager.SetUp(highscoreManager.LastName, playerManager.PlayerScore, levelManager.CurrentLevel, playerManager.Credits);
                         }
                         else
@@ -1227,6 +1243,7 @@ namespace SpaceScribble
                         if (playerManager.PlayerScore > 0)
                         {
                             gameState = GameStates.Submittion;
+                            highscoreManager.IncreaseTotalCredits(playerManager.Credits);
                             submissionManager.SetUp(highscoreManager.LastName, playerManager.PlayerScore, levelManager.CurrentLevel, playerManager.Credits);
                         }
                         else
@@ -1251,7 +1268,10 @@ namespace SpaceScribble
             gameInput.EndUpdate();
 
             // Advertisment stuff
-            adGameComponent.Update(gameTime);
+            if (isAdDuplexActive)
+                dpManager.Update(gameTime);
+            else
+                adGameComponent.Update(gameTime);
 
             if (gameState == GameStates.Help ||
                 gameState == GameStates.MainMenu ||
@@ -1263,10 +1283,12 @@ namespace SpaceScribble
                 gameState == GameStates.Highscores)
             {
                 adGameComponent.Visible = true;
+                dpManager.Visible = true;
             }
             else
             {
                 adGameComponent.Visible = false;
+                dpManager.Visible = false;
             }
 
             base.Update(gameTime);
@@ -1459,11 +1481,15 @@ namespace SpaceScribble
                 hud.Draw(spriteBatch);
             }
 
-            adGameComponent.Draw(gameTime);
+            if (!isAdDuplexActive)
+                adGameComponent.Draw(gameTime);
 
             handManager.Draw(spriteBatch);
 
             spriteBatch.End();
+
+            if (isAdDuplexActive)
+                dpManager.Draw(spriteBatch, Vector2.Zero);
 
             base.Draw(gameTime);
         }

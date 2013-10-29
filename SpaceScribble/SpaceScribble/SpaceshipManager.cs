@@ -120,11 +120,11 @@ namespace SpaceScribble
         private const int BarWidth = 150;
         private const int BarHeight = 10;
 
-        private Vector2 maxHitPointLocation = new Vector2(240, 360);
-        private Vector2 agilityLocation = new Vector2(240, 395);
-        private Vector2 firePowerLocation = new Vector2(240, 430);
-        private Vector2 fireSpeedLocation = new Vector2(240, 465);
-        private Vector2 accuracyLocation = new Vector2(240, 500);
+        private Vector2 maxHitPointLocation = new Vector2(240, 355);
+        private Vector2 agilityLocation = new Vector2(240, 388);
+        private Vector2 firePowerLocation = new Vector2(240, 421);
+        private Vector2 fireSpeedLocation = new Vector2(240, 454);
+        private Vector2 accuracyLocation = new Vector2(240, 487);
 
         private const string HP_TEXT = "HP";
         private const string AGILITY_TEXT = "Agility";
@@ -132,11 +132,11 @@ namespace SpaceScribble
         private const string FIRESPEED_TEXT = "Laser Speed";
         private const string ACCURACY_TEXT = "Accuracy";
 
-        private Vector2 maxHitPointTextLocation = new Vector2(90, 353);
-        private Vector2 agilityTextLocation = new Vector2(90, 388);
-        private Vector2 firePowerTextLocation = new Vector2(90, 423);
-        private Vector2 fireSpeedTextLocation = new Vector2(90, 458);
-        private Vector2 accuracyTextLocation = new Vector2(90, 493);
+        private Vector2 maxHitPointTextLocation = new Vector2(90, 348);
+        private Vector2 agilityTextLocation = new Vector2(90, 381);
+        private Vector2 firePowerTextLocation = new Vector2(90, 414);
+        private Vector2 fireSpeedTextLocation = new Vector2(90, 447);
+        private Vector2 accuracyTextLocation = new Vector2(90, 480);
 
         private const string SHIPDATA_FILE = "spaceship.txt";
 
@@ -150,9 +150,6 @@ namespace SpaceScribble
         private readonly Vector2 creditsTextPosition = new Vector2(130, 194);
         private readonly Vector2 creditsPosition = new Vector2(238, 194);
 
-        // Phone position:
-        private readonly string TEXT_PHONEPOSITION = "Hold your phone to the desired position:";
-
         private readonly Rectangle[] PhoneSource = {new Rectangle(480, 0, 200, 256),
                                                     new Rectangle(680, 0, 200, 256),
                                                     new Rectangle(480, 300, 200, 256),
@@ -161,8 +158,10 @@ namespace SpaceScribble
                                                    new Rectangle(680, 600, 200, 256),
                                                    new Rectangle(680, 1050, 200, 256)};
         private readonly Rectangle PhoneUnknownSource = new Rectangle(480, 1050, 200, 256);
+        private readonly Rectangle PhoneTouchSource = new Rectangle(0, 1540, 256, 256);
 
         private readonly Rectangle PhoneSelectedDestination = new Rectangle(195, 560, 110, 140);
+        private readonly Rectangle PhoneTouchDestination = new Rectangle(180, 560, 140, 140);
 
         private readonly Rectangle PhoneRight1Destination = new Rectangle(295, 580, 78, 100);
         private readonly Rectangle PhoneRight2Destination = new Rectangle(340, 590, 62, 80);
@@ -172,6 +171,17 @@ namespace SpaceScribble
         private readonly SettingsManager settingsManager;
 
         private bool canStart;
+
+        // input selection
+        private readonly Rectangle InputTouchSource = new Rectangle(580, 1450, 300, 50);
+        private readonly Rectangle InputSensorSource = new Rectangle(580, 1500, 300, 50);
+        private readonly Rectangle InputTitleDestionation = new Rectangle(90, 515, 300, 50);
+        private readonly Rectangle InputTouchArea = new Rectangle(0, 515, 480, 175);
+        private readonly Rectangle InputArrowRightDestination = new Rectangle(380, 595,
+                                                                       60, 60);
+        private readonly Rectangle InputArrowLeftDestination = new Rectangle(30, 595,
+                                                                       60, 60);
+        private const string ActionInput = "ChangeInput";
 
         public SpaceshipManager(Texture2D mtex, Texture2D spriteSheet, SpriteFont font,
                                 PlayerManager player, HighscoreManager highscoreManager)
@@ -203,13 +213,6 @@ namespace SpaceScribble
                                            GestureType.Tap,
                                            ArrowRightDestination);
 
-            GameInput.AddTouchSlideInput(LeftAction,
-                                         Input.Direction.Right,
-                                         30.0f);
-            GameInput.AddTouchSlideInput(RightAction,
-                                         Input.Direction.Left,
-                                         30.0f);
-
             GameInput.AddTouchGestureInput(GoAction,
                                            GestureType.Tap,
                                            goDestination);
@@ -219,6 +222,10 @@ namespace SpaceScribble
             GameInput.AddTouchGestureInput(BuyAction,
                                            GestureType.Tap,
                                            buyDestination);
+
+            GameInput.AddTouchGestureInput(ActionInput,
+                                           GestureType.Tap,
+                                           InputTouchArea);
         }
 
         /// <summary>
@@ -231,13 +238,20 @@ namespace SpaceScribble
 
             if (isActive)
             {
-                if (settingsManager.GetNeutralPositionIndex() >= 0)
+                if (PlayerManager.IsSensorInput)
                 {
-                    canStart = true;
+                    if (settingsManager.GetNeutralPositionIndex() >= 0)
+                    {
+                        canStart = true;
+                    }
+                    else
+                    {
+                        canStart = false;
+                    }
                 }
                 else
                 {
-                    canStart = false;
+                    canStart = true;
                 }
 
                 switchShipTimer += elapsed;
@@ -357,6 +371,13 @@ namespace SpaceScribble
 
                 SoundManager.PlayPaperSound();
             }
+
+            // Toogle input
+            if (GameInput.IsPressed(ActionInput))
+            {
+                PlayerManager.IsSensorInput = !PlayerManager.IsSensorInput;
+            }
+
             // Go/Buy
             if (isCurrentSelectionUnlocked())
             {
@@ -491,7 +512,7 @@ namespace SpaceScribble
                     spriteBatch.Draw(menuTexture,
                                  buyDestination,
                                  buySource,
-                                 startColor);
+                                 Color.White * opacity);
                 else
                     spriteBatch.Draw(menuTexture,
                                  buyDestination,
@@ -522,68 +543,111 @@ namespace SpaceScribble
                                    pos,
                                    Color.Black * opacity);
 
+            // input
+            drawInput(spriteBatch);
+        }
+
+        private void drawInput(SpriteBatch spriteBatch)
+        {
+            Rectangle inputTitleSrc;
+
+            if (PlayerManager.IsSensorInput)
+                inputTitleSrc = InputSensorSource;
+            else
+                inputTitleSrc = InputTouchSource;
+
+            spriteBatch.Draw(menuTexture,
+                InputTitleDestionation,
+                inputTitleSrc,
+                Color.White);
+
             // Phone position
             drawPhonePosition(spriteBatch);
+
+            // Arrow left
+            spriteBatch.Draw(menuTexture,
+                             InputArrowLeftDestination,
+                             ArrowRightSource,
+                             Color.White * opacity,
+                             0.0f,
+                             Vector2.Zero,
+                             SpriteEffects.FlipHorizontally,
+                             0.0f);
+
+            // Arrow right
+            spriteBatch.Draw(menuTexture,
+                             InputArrowRightDestination,
+                             ArrowRightSource,
+                             Color.White * opacity,
+                             0.0f,
+                             Vector2.Zero,
+                             SpriteEffects.None,
+                             0.0f);
         }
 
         private void drawPhonePosition(SpriteBatch spriteBatch)
         {
-                spriteBatch.DrawString(font,
-                                   TEXT_PHONEPOSITION,
-                                   new Vector2(240 - font.MeasureString(TEXT_PHONEPOSITION).X / 2,
-                                               530),
-                                   Color.Black * opacity);
-
-            // Phones:
-            int phoneIndex = settingsManager.GetNeutralPositionIndex();
-            int rightIndex = phoneIndex + 1;
-            int right2Index = phoneIndex + 2;
-            int leftIndex = phoneIndex - 1;
-            int left2Index = phoneIndex - 2;
-
-            if (phoneIndex >= 0 && phoneIndex < PhoneSource.Length)
+            if (PlayerManager.IsSensorInput)
             {
-                if (leftIndex >= 0 && leftIndex < PhoneSource.Length)
+                // Phones:
+                int phoneIndex = settingsManager.GetNeutralPositionIndex();
+                int rightIndex = phoneIndex + 1;
+                int right2Index = phoneIndex + 2;
+                int leftIndex = phoneIndex - 1;
+                int left2Index = phoneIndex - 2;
+
+                if (phoneIndex >= 0 && phoneIndex < PhoneSource.Length)
+                {
+                    if (leftIndex >= 0 && leftIndex < PhoneSource.Length)
+                        spriteBatch.Draw(
+                            menuTexture,
+                            PhoneLeft1Destination,
+                            PhoneSource[leftIndex],
+                            Color.White * 0.4f);
+
+                    if (left2Index >= 0 && left2Index < PhoneSource.Length)
+                        spriteBatch.Draw(
+                            menuTexture,
+                            PhoneLeft2Destination,
+                            PhoneSource[left2Index],
+                            Color.White * 0.15f);
+
+                    if (rightIndex >= 0 && rightIndex < PhoneSource.Length)
+                        spriteBatch.Draw(
+                            menuTexture,
+                            PhoneRight1Destination,
+                            PhoneSource[rightIndex],
+                            Color.White * 0.4f);
+
+                    if (right2Index >= 0 && right2Index < PhoneSource.Length)
+                        spriteBatch.Draw(
+                            menuTexture,
+                            PhoneRight2Destination,
+                            PhoneSource[right2Index],
+                            Color.White * 0.15f);
+
                     spriteBatch.Draw(
                         menuTexture,
-                        PhoneLeft1Destination,
-                        PhoneSource[leftIndex],
-                        Color.White * 0.4f);
-
-                if (left2Index >= 0 && left2Index < PhoneSource.Length)
+                        PhoneSelectedDestination,
+                        PhoneSource[phoneIndex],
+                        Color.White);
+                }
+                else
+                {
                     spriteBatch.Draw(
                         menuTexture,
-                        PhoneLeft2Destination,
-                        PhoneSource[left2Index],
-                        Color.White * 0.15f);
-
-                if (rightIndex >= 0 && rightIndex < PhoneSource.Length)
-                    spriteBatch.Draw(
-                        menuTexture,
-                        PhoneRight1Destination,
-                        PhoneSource[rightIndex],
-                        Color.White * 0.4f);
-
-                if (right2Index >= 0 && right2Index < PhoneSource.Length)
-                    spriteBatch.Draw(
-                        menuTexture,
-                        PhoneRight2Destination,
-                        PhoneSource[right2Index],
-                        Color.White * 0.15f);
-
-                spriteBatch.Draw(
-                    menuTexture,
-                    PhoneSelectedDestination,
-                    PhoneSource[phoneIndex],
-                    Color.White);
+                        PhoneSelectedDestination,
+                        PhoneUnknownSource,
+                        Color.White);
+                }
             }
             else
             {
                 spriteBatch.Draw(
-                    menuTexture,
-                    PhoneSelectedDestination,
-                    PhoneUnknownSource,
-                    Color.White);
+                        menuTexture,
+                        PhoneTouchDestination,
+                        PhoneTouchSource,
+                        Color.White);
             }
         }
 
