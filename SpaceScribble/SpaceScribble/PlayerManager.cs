@@ -85,7 +85,7 @@ namespace SpaceScribble
         private readonly Vector2 PLAYER_POSITION_OFFSET = new Vector2(-25, -100);
 
         // Player ship type/texture
-        public enum PlayerType { GreenHornet, Medium, Hard, Tank, Speeder, Easy };
+        public enum PlayerType { GreenHornet, Medium, Hard, Tank, Speeder, Easy, Raider };
         private PlayerType shipType = PlayerType.Easy;
         Texture2D tex;
 
@@ -214,9 +214,6 @@ namespace SpaceScribble
                     Hud.UPGRADE_LARGE_DIMENSION,
                     Hud.UPGRADE_LARGE_DIMENSION);
 
-                /*gameInput.AddTouchTapInput(ActionUpgradeTouch[i],
-                                       dest,
-                                       false);*/
                 gameInput.AddTouchGestureInput(ActionUpgradeTouch[i],
                     GestureType.Tap,
                     dest);
@@ -360,6 +357,21 @@ namespace SpaceScribble
                                                                  50));
                     }
                     break;
+
+                case PlayerType.Raider:
+                    playerSprite = new Sprite(new Vector2(500, 500),
+                                           tex,
+                                           new Rectangle(800, 200, 50, 50),
+                                           Vector2.Zero);
+
+                    for (int x = 1; x < 6; x++)
+                    {
+                        this.playerSprite.AddFrame(new Rectangle(800 + (x * 50),
+                                                                 200,
+                                                                 50,
+                                                                 50));
+                    }
+                    break;
                 default:
                     break;
             }
@@ -445,6 +457,18 @@ namespace SpaceScribble
                     initMinSpecialShotTimer = 0.35f;
                     initMinSpecialShotReloadTimer = 3.0f;
                     initInaccuracy = 10.0f;
+                    break;
+
+                case PlayerType.Raider:
+                    initPlayerSpeed = 225.0f;
+                    initShotSpeed = 325.0f;
+                    initShotPower = 45.0f;
+                    initMaxHitPoints = 325.0f;
+                    initMaxShieldPoints = 200.0f;
+                    initSpecialShots = 15;
+                    initMinSpecialShotTimer = 0.3f;
+                    initMinSpecialShotReloadTimer = 2.75f;
+                    initInaccuracy = 6.5f;
                     break;
             }
         }
@@ -913,6 +937,44 @@ namespace SpaceScribble
             }
         }
 
+        private void fireRaiderSpecial()
+        {
+            if (specialShotTimer <= 0.0f &&
+                SpecialShotsRemaining > 0)
+            {
+                SpecialShotsRemaining--;
+
+                this.PlayerShotManager.FireShot(this.playerSprite.Location + gunOffset - new Vector2(-10, 0),
+                                                        new Vector2((float)Math.Cos(MathHelper.ToRadians(87.0f)), -(float)Math.Sin(MathHelper.ToRadians(87.0f))),
+                                                        true,
+                                                        Color.White,
+                                                        true);
+
+                this.PlayerShotManager.FireShot(this.playerSprite.Location + gunOffset - new Vector2(10, 0),
+                                                        new Vector2((float)Math.Cos(MathHelper.ToRadians(93.0f)), -(float)Math.Sin(MathHelper.ToRadians(93.0f))),
+                                                        true,
+                                                        Color.White,
+                                                        false);
+
+                this.PlayerShotManager.FireSonic(this.playerSprite.Location + gunOffset - new Vector2(0, 15),
+                                                        new Vector2(0, -1),
+                                                        Color.Black * 0.5f,
+                                                        true);
+
+                this.PlayerShotManager.FireSonic(this.playerSprite.Location + gunOffset - new Vector2(-10, 0),
+                                                        new Vector2((float)Math.Cos(MathHelper.ToRadians(84.0f)), -(float)Math.Sin(MathHelper.ToRadians(84.0f))),
+                                                        Color.Black * 0.5f,
+                                                        false);
+
+                this.PlayerShotManager.FireSonic(this.playerSprite.Location + gunOffset - new Vector2(10, 0),
+                                                new Vector2((float)Math.Cos(MathHelper.ToRadians(96.0f)), -(float)Math.Sin(MathHelper.ToRadians(96.0f))),
+                                                Color.Black * 0.5f,
+                                                false);
+
+                specialShotTimer = initMinSpecialShotTimer;
+            }
+        }
+
         private void upgradePlayer()
         {
             if (upgrades > 0 && canUpgrade)
@@ -960,6 +1022,10 @@ namespace SpaceScribble
                                  shipType == PlayerType.Medium)
                         {
                             SpecialShotsRemaining += 20;
+                        }
+                        else if (shipType == PlayerType.Raider)
+                        {
+                            SpecialShotsRemaining += 25;
                         }
                         else
                         {
@@ -1264,6 +1330,8 @@ namespace SpaceScribble
                 fireSpeederSpecial();
             else if (shipType == PlayerType.Tank)
                 fireTankSpecial();
+            else if (shipType == PlayerType.Raider)
+                fireRaiderSpecial();
         }
 
         private void HandleKeyboardInput(KeyboardState state)

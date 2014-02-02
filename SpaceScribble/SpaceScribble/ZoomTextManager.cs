@@ -62,7 +62,7 @@ namespace SpaceScribble
                                        Color.Black,
                                        60,
                                        0.05f,
-                                       new Vector2(300, 260)));
+                                       new Vector2(300, 220)));
         }
 
         public static void ShowCredit(string text, Vector2 position)

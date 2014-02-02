@@ -42,6 +42,8 @@ namespace SpaceScribble
                                                               100, 100);
         private readonly Rectangle SpaceshipSpeederSource = new Rectangle(600, 350,
                                                               100, 100);
+        private readonly Rectangle SpaceshipRaiderSource = new Rectangle(1100,150,
+                                                              100, 100);
 
         private readonly Rectangle SpaceshipDestination = new Rectangle(190, 235,
                                                                         100, 100);
@@ -56,6 +58,7 @@ namespace SpaceScribble
         public const long CREDITS_TO_UNLOCK_SPEEDER = 300000;
         public const long CREDITS_TO_UNLOCK_HARD = 500000;
         public const long CREDITS_TO_UNLOCK_TANK = 750000;
+        public const long CREDITS_TO_UNLOCK_RAIDER = 2500000;
 
         private const int PriceTextPositionY = 385;
         public const string PRICE_TITLE_TEXT = "Price:";
@@ -64,6 +67,7 @@ namespace SpaceScribble
         public const string CREDITS_TO_UNLOCK_SPEEDER_TEXT = "300000 $";
         public const string CREDITS_TO_UNLOCK_HARD_TEXT = "500000 $";
         public const string CREDITS_TO_UNLOCK_TANK_TEXT = "750000 $";
+        public const string CREDITS_TO_UNLOCK_RAIDER_TEXT = "2500000 $";
 
         private readonly Rectangle ArrowRightSource = new Rectangle(340, 400,
                                                                   100, 100);
@@ -115,6 +119,7 @@ namespace SpaceScribble
         private string descriptionHard = null;
         private string descriptionSpeeder = null;
         private string descriptionTank = null;
+        private string descriptionRaider = null;
 
         private readonly Vector2 SmallBarOverlayStart = new Vector2(600, 950);
         private const int BarWidth = 150;
@@ -145,6 +150,7 @@ namespace SpaceScribble
         private bool isSpeederUnlocked;
         private bool isTankUnlocked;
         private bool isGreenHornetUnlocked;
+        private bool isRaiderUnlocked;
 
         private const string CREDITS_TEXT = "Credits:";
         private readonly Vector2 creditsTextPosition = new Vector2(130, 194);
@@ -282,6 +288,9 @@ namespace SpaceScribble
                 case PlayerManager.PlayerType.Speeder:
                     return isSpeederUnlocked;
 
+                case PlayerManager.PlayerType.Raider:
+                    return isRaiderUnlocked;
+
                 default:
                     return true;
             }
@@ -305,6 +314,9 @@ namespace SpaceScribble
 
                 case PlayerManager.PlayerType.Speeder:
                     return highscoreManager.TotalCredits >= CREDITS_TO_UNLOCK_SPEEDER;
+
+                case PlayerManager.PlayerType.Raider:
+                    return highscoreManager.TotalCredits >= CREDITS_TO_UNLOCK_RAIDER;
 
                 default:
                     return true;
@@ -343,6 +355,12 @@ namespace SpaceScribble
                     highscoreManager.DecreaseTotalCredits(CREDITS_TO_UNLOCK_SPEEDER);
                     ZoomTextManager.ShowBuyPrice(CREDITS_TO_UNLOCK_SPEEDER_TEXT);
                     this.isSpeederUnlocked = true;
+                    break;
+
+                case PlayerManager.PlayerType.Raider:
+                    highscoreManager.DecreaseTotalCredits(CREDITS_TO_UNLOCK_RAIDER);
+                    ZoomTextManager.ShowBuyPrice(CREDITS_TO_UNLOCK_RAIDER_TEXT);
+                    this.isRaiderUnlocked = true;
                     break;
             }
 
@@ -422,6 +440,9 @@ namespace SpaceScribble
                     playerManager.SelectPlayerType(PlayerManager.PlayerType.GreenHornet);
                     break;
                 case PlayerManager.PlayerType.GreenHornet:
+                    playerManager.SelectPlayerType(PlayerManager.PlayerType.Raider);
+                    break;
+                case PlayerManager.PlayerType.Raider:
                     playerManager.SelectPlayerType(PlayerManager.PlayerType.Easy);
                     break;
             }
@@ -432,7 +453,7 @@ namespace SpaceScribble
             switch (playerManager.ShipType)
             {
                 case PlayerManager.PlayerType.Easy:
-                    playerManager.SelectPlayerType(PlayerManager.PlayerType.GreenHornet);
+                    playerManager.SelectPlayerType(PlayerManager.PlayerType.Raider);
                     break;
                 case PlayerManager.PlayerType.Medium:
                     playerManager.SelectPlayerType(PlayerManager.PlayerType.Easy);
@@ -448,6 +469,9 @@ namespace SpaceScribble
                     break;
                 case PlayerManager.PlayerType.GreenHornet:
                     playerManager.SelectPlayerType(PlayerManager.PlayerType.Tank);
+                    break;
+                case PlayerManager.PlayerType.Raider:
+                    playerManager.SelectPlayerType(PlayerManager.PlayerType.GreenHornet);
                     break;
             }
         }
@@ -672,6 +696,9 @@ namespace SpaceScribble
                 case PlayerManager.PlayerType.Speeder:
                     priceText = CREDITS_TO_UNLOCK_SPEEDER_TEXT;
                     break;
+                case PlayerManager.PlayerType.Raider:
+                    priceText = CREDITS_TO_UNLOCK_RAIDER_TEXT;
+                    break;
                 default:
                     priceText = string.Empty;
                     break;
@@ -714,6 +741,10 @@ namespace SpaceScribble
             descriptionTank = string.Format("Gain {0} XP! [{1}%]",
                                             CREDITS_TO_UNLOCK_TANK,
                                             (int)(100.0f * (highscoreManager.TotalCredits / (float)CREDITS_TO_UNLOCK_TANK)));
+
+            descriptionRaider = string.Format("Gain {0} XP! [{1}%]",
+                                            CREDITS_TO_UNLOCK_RAIDER,
+                                            (int)(100.0f * (highscoreManager.TotalCredits / (float)CREDITS_TO_UNLOCK_RAIDER)));
         }
 
         private void drawSpaceship(SpriteBatch spriteBatch)
@@ -736,6 +767,9 @@ namespace SpaceScribble
                     break;
                 case PlayerManager.PlayerType.Tank:
                     src = SpaceshipTankSource;
+                    break;
+                case PlayerManager.PlayerType.Raider:
+                    src = SpaceshipRaiderSource;
                     break;
                 default:
                     src = SpaceshipEasySource;
@@ -998,6 +1032,7 @@ namespace SpaceScribble
                         sw.WriteLine(this.isSpeederUnlocked);
                         sw.WriteLine(this.isTankUnlocked);
                         sw.WriteLine(this.isGreenHornetUnlocked);
+                        sw.WriteLine(this.isRaiderUnlocked);
 
                         sw.Flush();
                         sw.Close();
@@ -1023,6 +1058,16 @@ namespace SpaceScribble
                             this.isSpeederUnlocked = Boolean.Parse(sr.ReadLine());
                             this.isTankUnlocked = Boolean.Parse(sr.ReadLine());
                             this.isGreenHornetUnlocked = Boolean.Parse(sr.ReadLine());
+
+                            // check for data because this property didn't exist before version 1.9
+                            try
+                            {
+                                this.isRaiderUnlocked = Boolean.Parse(sr.ReadLine());
+                            }
+                            catch (Exception)
+                            {
+                                this.isRaiderUnlocked = false;
+                            }
                         }
                     }
                     else
@@ -1034,6 +1079,7 @@ namespace SpaceScribble
                             sw.WriteLine(this.isSpeederUnlocked);
                             sw.WriteLine(this.isTankUnlocked);
                             sw.WriteLine(this.isGreenHornetUnlocked);
+                            sw.WriteLine(this.isRaiderUnlocked);
 
                             // ... ? 
                         }

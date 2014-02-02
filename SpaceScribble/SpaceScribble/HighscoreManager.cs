@@ -102,6 +102,9 @@ namespace SpaceScribble
         private const int ScorePositionX = 395;
         private const int LevelPositionX = 450;
 
+        /// <summary>
+        /// Defines the default player credits.
+        /// </summary>
         private long totalCredits = 0;
 
         private const string USERDATA_FILE = "user.txt";

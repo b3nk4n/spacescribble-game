@@ -101,6 +101,8 @@
     <Compile Include="LevelManager.cs" />
     <Compile Include="MainMenuManager.cs" />
     <Compile Include="MD5.cs" />
+    <Compile Include="Nokia\FeedbackHelper.cs" />
+    <Compile Include="Nokia\StorageHelper.cs" />
     <Compile Include="Particle.cs" />
     <Compile Include="PlayerManager.cs" />
     <Compile Include="PowerUp.cs" />

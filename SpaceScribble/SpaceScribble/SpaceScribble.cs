@@ -12,6 +12,7 @@ using SpaceScribble.Inputs;
 using Microsoft.Advertising.Mobile.Xna;
 using Microsoft.Advertising;
 using AdDuplex.Xna;
+using SpaceScribble.Nokia;
 
 namespace SpaceScribble
 {
@@ -185,6 +186,8 @@ namespace SpaceScribble
             TouchPanel.EnabledGestures = GestureType.Tap;
 
             loadVersion();
+
+            FeedbackHelper.Default.Initialise();
 
             base.Initialize();
         }
@@ -513,6 +516,10 @@ namespace SpaceScribble
         ///// </summary>
         void GameActivated(object sender, ActivatedEventArgs e)
         {
+            // no loading if resumed from DORMANT state
+            if (e.IsApplicationInstancePreserved)
+                return;
+
             tryLoadGame();
         }
 

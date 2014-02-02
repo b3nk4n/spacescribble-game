@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2009/deployment" AppPlatformVersion="7.1">
-  <App xmlns="" ProductID="{014ea383-2f68-411d-8477-e2aecdb51b2a}" Title="SpaceScribble" RuntimeType="XNA" Version="1.7.0.0" Genre="Apps.Games" Author="Benjamin Sautermeiter" Description="SpaceScribble is an addictive space game." Publisher="Benjamin Sautermeister">
+  <App xmlns="" ProductID="{014ea383-2f68-411d-8477-e2aecdb51b2a}" Title="SpaceScribble" RuntimeType="XNA" Version="1.9.0.0" Genre="Apps.Games" Author="Benjamin Sautermeiter" Description="SpaceScribble is an addictive space game." Publisher="Benjamin Sautermeister">
     <IconPath IsRelative="true" IsResource="false"></IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING" />

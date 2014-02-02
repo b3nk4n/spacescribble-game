@@ -1,9 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceScribble", "SpaceScribble\SpaceScribble\SpaceScribble.csproj", "{DF060DC9-E254-4CB8-B8D6-920536D91FC0}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "SpaceScribbleContent", "SpaceScribble\SpaceScribbleContent\SpaceScribbleContent.contentproj", "{5C7C2675-C2B5-43CA-884D-C24BC34E9FFA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceScribbleContent", "SpaceScribble\SpaceScribbleContent\SpaceScribbleContent.contentproj", "{5C7C2675-C2B5-43CA-884D-C24BC34E9FFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
